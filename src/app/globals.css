@@ -4,12 +4,16 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ===================================================================
+   FirmForge — "Industrial Precision" Theme
+   =================================================================== */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-dm-sans);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-heading: var(--font-syne);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -46,85 +50,339 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* FirmForge custom colors */
+  --color-cyan-accent: #00D4FF;
+  --color-violet-accent: #7C3AED;
+  --color-success-green: #00FF88;
+  --color-surface: #12121A;
+  --color-surface-dark: #0D0D14;
+  --color-border-custom: #1E1E2E;
+  --color-text-primary: #E8E8F0;
+  --color-text-muted: #6B6B8A;
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --background: #0A0A0F;
+  --foreground: #E8E8F0;
+  --card: #12121A;
+  --card-foreground: #E8E8F0;
+  --popover: #12121A;
+  --popover-foreground: #E8E8F0;
+  --primary: #00D4FF;
+  --primary-foreground: #000000;
+  --secondary: #7C3AED;
+  --secondary-foreground: #FFFFFF;
+  --muted: #1E1E2E;
+  --muted-foreground: #6B6B8A;
+  --accent: #1E1E2E;
+  --accent-foreground: #E8E8F0;
+  --destructive: #FF4444;
+  --border: #1E1E2E;
+  --input: #1E1E2E;
+  --ring: #00D4FF;
+  --chart-1: #00D4FF;
+  --chart-2: #7C3AED;
+  --chart-3: #00FF88;
+  --chart-4: #FF6B6B;
+  --chart-5: #FFD93D;
+  --radius: 0.75rem;
+  --sidebar: #0A0A0F;
+  --sidebar-foreground: #E8E8F0;
+  --sidebar-primary: #00D4FF;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #1E1E2E;
+  --sidebar-accent-foreground: #E8E8F0;
+  --sidebar-border: #1E1E2E;
+  --sidebar-ring: #00D4FF;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
+/* ===================================================================
+   Base Styles
+   =================================================================== */
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
+
   html {
-    @apply font-sans;
+    font-family: var(--font-dm-sans), system-ui, sans-serif;
+    scroll-behavior: smooth;
   }
+
+  body {
+    background-color: #0A0A0F;
+    color: #E8E8F0;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0A0A0F;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #1E1E2E;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #2E2E3E;
+  }
+}
+
+/* ===================================================================
+   Grid Dot Background Pattern
+   =================================================================== */
+
+.bg-grid-pattern {
+  background-image: radial-gradient(circle, #1E1E2E 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.bg-grid-pattern-subtle {
+  background-image: radial-gradient(circle, rgba(30, 30, 46, 0.5) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* ===================================================================
+   Cyan Glow Effects
+   =================================================================== */
+
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+.glow-cyan-sm {
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+}
+
+.glow-cyan-lg {
+  box-shadow: 0 0 40px rgba(0, 212, 255, 0.25),
+              0 0 80px rgba(0, 212, 255, 0.1);
+}
+
+.glow-cyan-border {
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3),
+              inset 0 0 20px rgba(0, 212, 255, 0.05);
+}
+
+.glow-violet {
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+}
+
+/* Focus glow for inputs */
+.focus-glow:focus,
+.focus-glow:focus-within {
+  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.3),
+              0 0 20px rgba(0, 212, 255, 0.15);
+  border-color: #00D4FF;
+}
+
+/* ===================================================================
+   Marquee Animation (MCU Badge Row)
+   =================================================================== */
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* ===================================================================
+   Pulse Glow Animation (Generate Button)
+   =================================================================== */
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(0, 212, 255, 0.6),
+                0 0 60px rgba(0, 212, 255, 0.2);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ===================================================================
+   Typing Cursor
+   =================================================================== */
+
+@keyframes blink-cursor {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.animate-cursor {
+  animation: blink-cursor 1s step-end infinite;
+}
+
+/* ===================================================================
+   Shimmer/Skeleton Effect
+   =================================================================== */
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    #0D0D14 25%,
+    #1E1E2E 50%,
+    #0D0D14 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* ===================================================================
+   Code Block Styles
+   =================================================================== */
+
+.code-block {
+  font-family: var(--font-jetbrains-mono), "JetBrains Mono", monospace;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  tab-size: 4;
+}
+
+.code-line-number {
+  color: #6B6B8A;
+  user-select: none;
+  min-width: 2.5rem;
+  text-align: right;
+  padding-right: 1rem;
+  font-size: 0.75rem;
+}
+
+/* Syntax highlighting colors (no library, CSS only) */
+.syntax-keyword {
+  color: #00D4FF;
+}
+
+.syntax-type {
+  color: #7C3AED;
+}
+
+.syntax-string {
+  color: #00FF88;
+}
+
+.syntax-comment {
+  color: #6B6B8A;
+  font-style: italic;
+}
+
+.syntax-number {
+  color: #FFD93D;
+}
+
+.syntax-function {
+  color: #E8E8F0;
+}
+
+.syntax-preprocessor {
+  color: #FF6B6B;
+}
+
+.syntax-macro {
+  color: #FFD93D;
+}
+
+/* ===================================================================
+   Card Hover Effects
+   =================================================================== */
+
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  border-color: rgba(0, 212, 255, 0.3);
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+/* ===================================================================
+   Select / Dropdown Overrides for dark theme
+   =================================================================== */
+
+[data-radix-select-viewport] {
+  background-color: #12121A !important;
+}
+
+[data-radix-select-content] {
+  background-color: #12121A !important;
+  border-color: #1E1E2E !important;
+}
+
+/* ===================================================================
+   Gradient Text
+   =================================================================== */
+
+.gradient-text-cyan {
+  background: linear-gradient(135deg, #00D4FF, #7C3AED);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===================================================================
+   Navbar Blur
+   =================================================================== */
+
+.navbar-blur {
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  background-color: rgba(10, 10, 15, 0.8);
+}
+
+/* ===================================================================
+   Tab Indicator
+   =================================================================== */
+
+.tab-active {
+  position: relative;
+}
+
+.tab-active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #00D4FF;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
 }
