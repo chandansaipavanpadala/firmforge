@@ -29,7 +29,7 @@ Styled under the "Industrial Precision" design system, FirmForge replicates the 
 
 ## System Architecture and Data Flow
 
-FirmForge is designed with a decoupled client-server architecture. The user interface manages application state, dynamic configurations, streaming HTTP client consumption, and layout rendering. The backend server manages prompt synthesis, parameter validation, error boundaries, and streaming integration with the Anthropic API.
+FirmForge is designed with a decoupled client-server architecture. The user interface manages application state, dynamic configurations, streaming HTTP client consumption, and layout rendering. The backend server manages prompt synthesis, parameter validation, error boundaries, and streaming integration with the Google Gemini API.
 
 Below is the detailed data flow mapping of the code generation pipeline:
 
@@ -40,7 +40,7 @@ Below is the detailed data flow mapping of the code generation pipeline:
 #### Single-File Snippet Generation Flow
 1. **Configuration Input**: The user selects the target MCU, peripheral interface, code style, and fills out peripheral-specific parameters (e.g., baud rate, clock speed, pins).
 2. **HTTP POST Request**: The UI packages these settings into a JSON payload and dispatches a POST request to `/api/generate-snippet`.
-3. **Synthesis and Streaming**: The backend compiles user options into a system engineering prompt, invokes the Anthropic Messages API (`claude-sonnet-4-20250514`), transforms the Server-Sent Events (SSE) stream into a raw chunked stream, and pipes it back to the client.
+3. **Synthesis and Streaming**: The backend compiles user options into a system engineering prompt, invokes the Google Gemini API (`gemini-2.0-flash`) via the generative AI SDK, transforms the response stream into a raw chunked stream, and pipes it back to the client.
 4. **Client-Side Rendering**: The client reads the stream progressively using the Streams API and updates the UI's code block, complete with typing animations.
 
 #### Multi-File RTOS Workspace Generation Flow
@@ -104,7 +104,7 @@ FirmForge utilizes modern web frameworks and styling engines to deliver a respon
 * **Component Primitives**: `@base-ui/react` (v1.5.0) mapping through Shadcn UI structures (v4.9.0)
 * **Animation Library**: Framer Motion 12.40.0
 * **Typography**: Syne (headings), DM Sans (body text), and JetBrains Mono (monospaced code and labels) loaded via Next.js Font Optimization
-* **AI Core**: Anthropic Claude API (`claude-sonnet-4-20250514` model)
+* **AI Core**: Google Gemini API (using the `@google/generative-ai` SDK and the `gemini-2.0-flash` model)
 
 ---
 
@@ -169,11 +169,11 @@ Content-Type: application/json
   ```
 * **500 Internal Server Error**: API Key misconfiguration.
   ```json
-  { "error": "ANTHROPIC_API_KEY is not configured. Add it to .env.local" }
+  { "error": "GEMINI_API_KEY is not configured. Add it to .env.local" }
   ```
-* **502 Bad Gateway**: Communication issue with the Anthropic API.
+* **502 Bad Gateway**: Communication issue with the Gemini API.
   ```json
-  { "error": "Anthropic API error: 503" }
+  { "error": "Gemini API error: [Error details]" }
   ```
 
 ---
@@ -251,11 +251,11 @@ Content-Type: application/json
   ```
 * **500 Internal Server Error**: API Key configuration missing.
   ```json
-  { "error": "ANTHROPIC_API_KEY is not configured. Add it to .env.local" }
+  { "error": "GEMINI_API_KEY is not configured. Add it to .env.local" }
   ```
 * **502 Bad Gateway**: Upstream remote API connection failed.
   ```json
-  { "error": "Anthropic API error: 502" }
+  { "error": "Gemini API error: [Error details]" }
   ```
 
 ---
@@ -334,9 +334,9 @@ FirmForge uses a custom design system designed to replicate high-precision instr
    ```bash
    cp .env.example .env.local
    ```
-   Open `.env.local` and configure your Anthropic API key:
+   Open `.env.local` and configure your Google Gemini API key:
    ```env
-   ANTHROPIC_API_KEY=your_anthropic_api_key_here
+   GEMINI_API_KEY=your_gemini_api_key_here
    ```
 
 4. **Launch Local Development Server**:
@@ -375,7 +375,7 @@ A `vercel.json` configuration file is established in the root directory to exten
 ```
 
 * **Snippet Generator Endpoint (`/api/generate-snippet`)**: Configured with a maximum duration of 60 seconds to support single-file peripheral driver assembly.
-* **RTOS Architect Workspace Endpoint (`/api/generate-rtos`)**: Configured with a maximum duration of 120 seconds to allow the Anthropic Claude API enough time to stream three fully formed project files (`main.c`, `tasks.h`, `config.h`) without gateway interruption.
+* **RTOS Architect Workspace Endpoint (`/api/generate-rtos`)**: Configured with a maximum duration of 120 seconds to allow the Google Gemini API enough time to stream three fully formed project files (`main.c`, `tasks.h`, `config.h`) without gateway interruption.
 
 ### Security Headers and Optimizations
 

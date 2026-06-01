@@ -1,11 +1,12 @@
 // =============================================================================
 // FirmForge — Streaming Snippet Generation API Route
 // POST /api/generate-snippet
-// Calls Claude API with streaming, pipes raw text back as ReadableStream
+// Calls Gemini API with streaming, pipes raw text back as ReadableStream
 // =============================================================================
 
 import { NextRequest } from "next/server";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const SYSTEM_PROMPT = `You are FirmForge, an expert embedded systems engineer with deep knowledge of microcontroller programming. You generate production-ready, professional embedded C code that is:
 - Correct for the specific MCU's exact register names and addresses
@@ -66,11 +67,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey || apiKey === "your_api_key_here") {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey === "your_key_here") {
       return new Response(
         JSON.stringify({
-          error: "ANTHROPIC_API_KEY is not configured. Add it to .env.local",
+          error: "GEMINI_API_KEY is not configured. Add it to .env.local",
         }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
@@ -89,106 +90,44 @@ ${paramLines}
 
 Output only the complete C code file, ready to use.`;
 
-    // ── Call Anthropic API with streaming ────────────────────────────────
-    const anthropicResponse = await fetch(
-      "https://api.anthropic.com/v1/messages",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
+    // ── Call Gemini API with streaming ──────────────────────────────────
+    let resultStream;
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.0-flash",
+        systemInstruction: SYSTEM_PROMPT,
+        generationConfig: {
+          maxOutputTokens: 2048,
         },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 2048,
-          stream: true,
-          system: SYSTEM_PROMPT,
-          messages: [{ role: "user", content: userPrompt }],
-        }),
-      }
-    );
+      });
 
-    if (!anthropicResponse.ok) {
-      const errorText = await anthropicResponse.text();
-      console.error("Anthropic API error:", anthropicResponse.status, errorText);
+      resultStream = await model.generateContentStream({
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      });
+    } catch (apiErr: any) {
+      console.error("Gemini API error during call:", apiErr);
       return new Response(
         JSON.stringify({
-          error: `Anthropic API error: ${anthropicResponse.status}`,
+          error: `Gemini API error: ${apiErr.message || apiErr}`,
         }),
         { status: 502, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // ── Stream SSE → plain text TransformStream ─────────────────────────
+    // ── Stream chunk-by-chunk to the client ──────────────────────────────
     const stream = new ReadableStream({
       async start(controller) {
-        const reader = anthropicResponse.body!.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-
         try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-
-            // Process complete SSE lines
-            const lines = buffer.split("\n");
-            // Keep the last potentially incomplete line in the buffer
-            buffer = lines.pop() || "";
-
-            for (const line of lines) {
-              if (!line.startsWith("data: ")) continue;
-
-              const data = line.slice(6).trim();
-              if (data === "[DONE]") {
-                controller.close();
-                return;
-              }
-
-              try {
-                const parsed = JSON.parse(data);
-
-                if (parsed.type === "content_block_delta") {
-                  const text = parsed.delta?.text;
-                  if (text) {
-                    controller.enqueue(new TextEncoder().encode(text));
-                  }
-                }
-
-                if (parsed.type === "message_stop") {
-                  controller.close();
-                  return;
-                }
-              } catch {
-                // Skip non-JSON lines (event: lines, empty lines, etc.)
-              }
+          for await (const chunk of resultStream.stream) {
+            const text = chunk.text();
+            if (text) {
+              controller.enqueue(new TextEncoder().encode(text));
             }
           }
-
-          // Process any remaining buffer
-          if (buffer.startsWith("data: ")) {
-            const data = buffer.slice(6).trim();
-            if (data && data !== "[DONE]") {
-              try {
-                const parsed = JSON.parse(data);
-                if (parsed.type === "content_block_delta") {
-                  const text = parsed.delta?.text;
-                  if (text) {
-                    controller.enqueue(new TextEncoder().encode(text));
-                  }
-                }
-              } catch {
-                // Ignore parse errors on final buffer
-              }
-            }
-          }
-
           controller.close();
-        } catch (err) {
-          console.error("Stream processing error:", err);
+        } catch (err: any) {
+          console.error("Gemini stream processing error:", err);
           controller.error(err);
         }
       },
