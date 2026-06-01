@@ -1,6 +1,6 @@
 # FirmForge: AI-Powered Firmware Generation and RTOS Workspace Architect
 
-FirmForge is an enterprise-grade web application designed for electrical, computer, and embedded systems engineering professionals. It provides automated, context-aware code generation for a wide range of microcontroller units (MCUs) and peripherals, along with a multi-file Real-Time Operating System (RTOS) architect. By integrating advanced prompt engineering with streaming Anthropic Claude API capabilities, FirmForge delivers production-ready C firmware directly into an interactive development workspace.
+FirmForge is an enterprise-grade web application designed for electrical, computer, and embedded systems engineering professionals. It provides automated, context-aware code generation for a wide range of microcontroller units (MCUs) and peripherals, along with a multi-file Real-Time Operating System (RTOS) architect. By integrating advanced prompt engineering with streaming Google Gemini API capabilities, FirmForge delivers production-ready C firmware directly into an interactive development workspace.
 
 Styled under the "Industrial Precision" design system, FirmForge replicates the interface of high-end engineering instruments, such as oscilloscopes and logic analyzers, featuring a dark aesthetic with grid alignments, monospace labels, and custom digital indicators.
 
