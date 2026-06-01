@@ -455,6 +455,17 @@ export function SnippetGenerator() {
             Download .c file
           </motion.button>
         )}
+
+        {/* Token counter */}
+        {generatedCode && (
+          <p
+            className="text-xs text-[#6B6B8A]"
+            style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+          >
+            Generated {generatedCode.split("\n").length} lines ·{" "}
+            {generatedCode.length} characters
+          </p>
+        )}
       </motion.div>
     </div>
   );
