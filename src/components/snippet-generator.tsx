@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -16,43 +16,122 @@ import {
   MCU_OPTIONS,
   PERIPHERAL_OPTIONS,
   CODE_STYLE_OPTIONS,
-  DEMO_CODE,
-  PLACEHOLDER_SNIPPET_CODE,
 } from "@/lib/constants";
+import { getPeripheralParams } from "@/lib/peripheral-params";
 
 export function SnippetGenerator() {
   const [mcu, setMcu] = useState("");
   const [peripheral, setPeripheral] = useState("");
   const [codeStyle, setCodeStyle] = useState("");
-  const [baudRate, setBaudRate] = useState("115200");
-  const [txPin, setTxPin] = useState("PA9");
-  const [rxPin, setRxPin] = useState("PA10");
-  const [clockSpeed, setClockSpeed] = useState("72");
+  const [paramValues, setParamValues] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [generatedCode, setGeneratedCode] = useState("");
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleGenerate = useCallback(() => {
-    setIsLoading(true);
-    // Fake 2-second loading state
-    setTimeout(() => {
-      setIsLoading(false);
-      setGeneratedCode(DEMO_CODE);
-      setHasGenerated(true);
-    }, 2000);
+  // Get dynamic parameter definitions for the selected peripheral
+  const peripheralParams = peripheral ? getPeripheralParams(peripheral) : [];
+
+  // Reset parameter values when peripheral changes, pre-fill select defaults
+  useEffect(() => {
+    if (!peripheral) {
+      setParamValues({});
+      return;
+    }
+    const params = getPeripheralParams(peripheral);
+    const defaults: Record<string, string> = {};
+    for (const param of params) {
+      if (param.type === "select" && param.options && param.options.length > 0) {
+        // Pre-fill with placeholder value (first option or common default)
+        const placeholderIdx = param.options.indexOf(param.placeholder);
+        defaults[param.key] =
+          placeholderIdx >= 0 ? param.options[placeholderIdx] : param.options[0];
+      } else {
+        defaults[param.key] = param.placeholder;
+      }
+    }
+    setParamValues(defaults);
+  }, [peripheral]);
+
+  const updateParam = useCallback((key: string, value: string) => {
+    setParamValues((prev) => ({ ...prev, [key]: value }));
   }, []);
 
+  // ── Real streaming generation ─────────────────────────────────────────
+  const handleGenerate = useCallback(async () => {
+    if (!mcu || !peripheral) return;
+
+    setIsLoading(true);
+    setIsStreaming(true);
+    setGeneratedCode("");
+    setError(null);
+    setHasGenerated(false);
+
+    try {
+      const response = await fetch("/api/generate-snippet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mcu,
+          peripheral,
+          codeStyle: codeStyle || "HAL Library",
+          parameters: paramValues,
+        }),
+      });
+
+      if (!response.ok) {
+        let errorMsg = "Generation failed";
+        try {
+          const errBody = await response.json();
+          errorMsg = errBody.error || errorMsg;
+        } catch {
+          // ignore parse error
+        }
+        throw new Error(errorMsg);
+      }
+
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+      let fullCode = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        fullCode += chunk;
+        setGeneratedCode(fullCode);
+      }
+
+      setHasGenerated(true);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Unknown error occurred";
+      setError(
+        message.includes("API key")
+          ? message
+          : `Failed to generate code. ${message}`
+      );
+    } finally {
+      setIsLoading(false);
+      setIsStreaming(false);
+    }
+  }, [mcu, peripheral, codeStyle, paramValues]);
+
+  // ── Download handler ──────────────────────────────────────────────────
   const handleDownload = useCallback(() => {
+    if (!generatedCode) return;
     const blob = new Blob([generatedCode], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "firmware.c";
+    a.download = `${mcu}_${peripheral}_init.c`.replace(/[^a-z0-9_.]/gi, "_");
     a.click();
     URL.revokeObjectURL(url);
-  }, [generatedCode]);
+  }, [generatedCode, mcu, peripheral]);
 
-  const selectedMCULabel = MCU_OPTIONS.find((o) => o.value === mcu)?.label || "MCU";
+  const selectedMCULabel =
+    MCU_OPTIONS.find((o) => o.value === mcu)?.label || "MCU";
   const selectedPeripheralLabel =
     PERIPHERAL_OPTIONS.find((o) => o.value === peripheral)?.label || "Peripheral";
   const selectedStyleLabel =
@@ -101,7 +180,10 @@ export function SnippetGenerator() {
           >
             Select Peripheral
           </label>
-          <Select value={peripheral} onValueChange={(v) => setPeripheral(v ?? "")}>
+          <Select
+            value={peripheral}
+            onValueChange={(v) => setPeripheral(v ?? "")}
+          >
             <SelectTrigger className="w-full bg-[#0D0D14] border-[#1E1E2E] text-[#E8E8F0] focus-glow h-11">
               <SelectValue placeholder="Choose peripheral type" />
             </SelectTrigger>
@@ -120,76 +202,63 @@ export function SnippetGenerator() {
         </div>
 
         {/* Dynamic Parameter Fields */}
-        <div className="space-y-2">
-          <label
-            className="block text-xs font-medium text-[#6B6B8A] uppercase tracking-wider"
-            style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-          >
-            Parameters
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <span
-                className="text-xs text-[#6B6B8A]"
-                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-              >
-                Baud Rate
-              </span>
-              <Input
-                value={baudRate}
-                onChange={(e) => setBaudRate(e.target.value)}
-                placeholder="115200"
-                className="bg-[#0D0D14] border-[#1E1E2E] text-[#E8E8F0] focus-glow h-10"
-                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <span
-                className="text-xs text-[#6B6B8A]"
-                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-              >
-                TX Pin
-              </span>
-              <Input
-                value={txPin}
-                onChange={(e) => setTxPin(e.target.value)}
-                placeholder="PA9"
-                className="bg-[#0D0D14] border-[#1E1E2E] text-[#E8E8F0] focus-glow h-10"
-                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <span
-                className="text-xs text-[#6B6B8A]"
-                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-              >
-                RX Pin
-              </span>
-              <Input
-                value={rxPin}
-                onChange={(e) => setRxPin(e.target.value)}
-                placeholder="PA10"
-                className="bg-[#0D0D14] border-[#1E1E2E] text-[#E8E8F0] focus-glow h-10"
-                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <span
-                className="text-xs text-[#6B6B8A]"
-                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-              >
-                Clock Speed (MHz)
-              </span>
-              <Input
-                value={clockSpeed}
-                onChange={(e) => setClockSpeed(e.target.value)}
-                placeholder="72"
-                className="bg-[#0D0D14] border-[#1E1E2E] text-[#E8E8F0] focus-glow h-10"
-                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-              />
+        {peripheralParams.length > 0 && (
+          <div className="space-y-2">
+            <label
+              className="block text-xs font-medium text-[#6B6B8A] uppercase tracking-wider"
+              style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+            >
+              Parameters
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {peripheralParams.map((param) => (
+                <div key={param.key} className="space-y-1.5">
+                  <span
+                    className="text-xs text-[#6B6B8A]"
+                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+                  >
+                    {param.label}
+                  </span>
+                  {param.type === "select" && param.options ? (
+                    <Select
+                      value={paramValues[param.key] || ""}
+                      onValueChange={(v) =>
+                        updateParam(param.key, v ?? "")
+                      }
+                    >
+                      <SelectTrigger className="w-full bg-[#0D0D14] border-[#1E1E2E] text-[#E8E8F0] focus-glow h-10 text-xs">
+                        <SelectValue placeholder={param.placeholder} />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#12121A] border-[#1E1E2E]">
+                        {param.options.map((opt) => (
+                          <SelectItem
+                            key={opt}
+                            value={opt}
+                            className="text-[#E8E8F0] focus:bg-[#1E1E2E] focus:text-[#00D4FF] text-xs"
+                          >
+                            {opt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      value={paramValues[param.key] || ""}
+                      onChange={(e) =>
+                        updateParam(param.key, e.target.value)
+                      }
+                      placeholder={param.placeholder}
+                      className="bg-[#0D0D14] border-[#1E1E2E] text-[#E8E8F0] focus-glow h-10 text-xs"
+                      style={{
+                        fontFamily: "var(--font-jetbrains-mono)",
+                      }}
+                    />
+                  )}
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        )}
 
         {/* Code Style */}
         <div className="space-y-2">
@@ -199,7 +268,10 @@ export function SnippetGenerator() {
           >
             Code Style
           </label>
-          <Select value={codeStyle} onValueChange={(v) => setCodeStyle(v ?? "")}>
+          <Select
+            value={codeStyle}
+            onValueChange={(v) => setCodeStyle(v ?? "")}
+          >
             <SelectTrigger className="w-full bg-[#0D0D14] border-[#1E1E2E] text-[#E8E8F0] focus-glow h-11">
               <SelectValue placeholder="Choose code style" />
             </SelectTrigger>
@@ -220,13 +292,15 @@ export function SnippetGenerator() {
         {/* Generate Button */}
         <motion.button
           onClick={handleGenerate}
-          disabled={isLoading}
+          disabled={isLoading || !mcu || !peripheral}
           whileHover={{ scale: isLoading ? 1 : 1.02 }}
           whileTap={{ scale: isLoading ? 1 : 0.98 }}
           className={`w-full py-3.5 px-6 rounded-xl font-bold text-sm transition-all duration-200 ${
             isLoading
               ? "bg-[#00D4FF]/50 text-black/50 cursor-not-allowed animate-pulse-glow"
-              : "bg-[#00D4FF] text-black hover:bg-[#33DDFF] glow-cyan cursor-pointer"
+              : !mcu || !peripheral
+                ? "bg-[#00D4FF]/30 text-black/30 cursor-not-allowed"
+                : "bg-[#00D4FF] text-black hover:bg-[#33DDFF] glow-cyan cursor-pointer"
           }`}
           style={{ fontFamily: "var(--font-dm-sans)" }}
         >
@@ -254,6 +328,39 @@ export function SnippetGenerator() {
             "⚡ Generate Code"
           )}
         </motion.button>
+
+        {/* Error display */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3"
+          >
+            <div className="flex items-start gap-2">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#FF4444"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mt-0.5 flex-shrink-0"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="15" y1="9" x2="9" y2="15" />
+                <line x1="9" y1="9" x2="15" y2="15" />
+              </svg>
+              <p
+                className="text-xs text-red-400 leading-relaxed"
+                style={{ fontFamily: "var(--font-dm-sans)" }}
+              >
+                {error}
+              </p>
+            </div>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* ─── Right Panel: Output ─── */}
@@ -303,22 +410,26 @@ export function SnippetGenerator() {
         </div>
 
         {/* Code block */}
-        {hasGenerated ? (
+        {generatedCode ? (
           <CodeBlock
             code={generatedCode}
-            filename="firmware.c"
-            animateIn={true}
+            filename={
+              hasGenerated
+                ? `${mcu}_${peripheral}_init.c`.replace(/[^a-z0-9_.]/gi, "_")
+                : "firmware.c"
+            }
+            isStreaming={isStreaming}
           />
         ) : (
           <CodeBlock
-            code={PLACEHOLDER_SNIPPET_CODE}
+            code=""
             filename="firmware.c"
-            isEmpty={!hasGenerated && !isLoading}
+            isEmpty={!isLoading}
           />
         )}
 
         {/* Download button */}
-        {hasGenerated && (
+        {hasGenerated && generatedCode && (
           <motion.button
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
