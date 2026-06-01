@@ -11,7 +11,10 @@ import { RTOSArchitect } from "@/components/rtos-architect";
 function GenerateContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState(tabParam === "rtos" ? "rtos" : "snippet");
+  const defaultPrompt = searchParams.get("prompt") ?? "";
+  const [activeTab, setActiveTab] = useState(
+    tabParam === "rtos" ? "rtos" : "snippet"
+  );
 
   useEffect(() => {
     if (tabParam === "rtos") {
@@ -43,7 +46,8 @@ function GenerateContent() {
             className="text-[#6B6B8A] text-sm sm:text-base"
             style={{ fontFamily: "var(--font-dm-sans)" }}
           >
-            Select your MCU, configure peripherals, and generate production-ready embedded C code.
+            Select your MCU, configure peripherals, and generate production-ready
+            embedded C code.
           </p>
           <div
             className="flex items-center gap-2 mt-3 text-xs"
@@ -55,13 +59,17 @@ function GenerateContent() {
             >
               Home
             </Link>
-            <span className="text-[#6B6B8A]">→</span>
+            <span className="text-[#6B6B8A]">&rarr;</span>
             <span className="text-[#6B6B8A]">Generate</span>
           </div>
         </motion.div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v ?? "snippet")} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v ?? "snippet")}
+          className="w-full"
+        >
           <TabsList className="bg-[#12121A] border border-[#1E1E2E] rounded-xl p-1 mb-8 w-full sm:w-auto">
             <TabsTrigger
               value="snippet"
@@ -97,7 +105,7 @@ function GenerateContent() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <RTOSArchitect />
+              <RTOSArchitect initialPrompt={defaultPrompt} />
             </motion.div>
           </TabsContent>
         </Tabs>
@@ -110,14 +118,15 @@ export default function GeneratePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#0A0A0F]">
-          <div className="flex items-center gap-3">
-            <svg className="animate-spin h-5 w-5 text-[#00D4FF]" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.416" strokeDashoffset="10" strokeLinecap="round" />
-            </svg>
-            <span className="text-[#6B6B8A] text-sm" style={{ fontFamily: "var(--font-dm-sans)" }}>
-              Loading generator...
-            </span>
+        <div className="min-h-screen pt-20 px-4">
+          <div className="max-w-7xl mx-auto space-y-4 animate-pulse">
+            <div className="h-4 w-32 bg-[#1E1E2E] rounded" />
+            <div className="h-8 w-64 bg-[#1E1E2E] rounded" />
+            <div className="h-12 w-48 bg-[#1E1E2E] rounded-lg mt-4" />
+            <div className="grid grid-cols-2 gap-6 mt-6">
+              <div className="h-96 bg-[#12121A] rounded-xl border border-[#1E1E2E]" />
+              <div className="h-96 bg-[#12121A] rounded-xl border border-[#1E1E2E]" />
+            </div>
           </div>
         </div>
       }

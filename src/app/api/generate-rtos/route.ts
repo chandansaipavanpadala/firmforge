@@ -7,6 +7,7 @@
 // =============================================================================
 
 import { NextRequest } from "next/server";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 interface RequestBody {
   prompt: string;
@@ -21,6 +22,25 @@ interface RequestBody {
 
 export async function POST(request: NextRequest) {
   try {
+    // ── Rate limiting ───────────────────────────────────────────────────
+    const ip =
+      request.headers.get("x-forwarded-for") ??
+      request.headers.get("x-real-ip") ??
+      "unknown";
+    const { allowed, resetIn } = checkRateLimit(ip);
+
+    if (!allowed) {
+      return Response.json(
+        {
+          error: `Rate limit exceeded. Try again in ${Math.ceil(resetIn / 1000)} seconds.`,
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(Math.ceil(resetIn / 1000)) },
+        }
+      );
+    }
+
     // ── Parse and validate ──────────────────────────────────────────────
     const body = (await request.json()) as Partial<RequestBody>;
 

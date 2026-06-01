@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -101,9 +101,13 @@ function StatusDot({ status }: { status: FileStatus }) {
 // RTOSArchitect Component
 // =============================================================================
 
-export function RTOSArchitect() {
+interface RTOSArchitectProps {
+  initialPrompt?: string;
+}
+
+export function RTOSArchitect({ initialPrompt }: RTOSArchitectProps) {
   // ── Input state ─────────────────────────────────────────────────────────
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState(initialPrompt ?? "");
   const [mcu, setMcu] = useState("");
   const [rtos, setRtos] = useState("");
   const [options, setOptions] = useState({
@@ -123,6 +127,7 @@ export function RTOSArchitect() {
   });
   const [activeFile, setActiveFile] = useState<FileName>("main.c");
   const [copied, setCopied] = useState(false);
+  const outputRef = useRef<HTMLDivElement>(null);
 
   // ── Derived state ───────────────────────────────────────────────────────
   const hasAnyContent = Object.values(files).some((c) => c.length > 0);
@@ -145,6 +150,7 @@ export function RTOSArchitect() {
     setError(null);
     setRawStream("");
     setFiles({ "main.c": "", "tasks.h": "", "config.h": "" });
+    outputRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
     try {
       const response = await fetch("/api/generate-rtos", {
@@ -193,6 +199,18 @@ export function RTOSArchitect() {
       setIsLoading(false);
     }
   }, [description, mcu, rtos, options]);
+
+  // ── Ctrl+Enter keyboard shortcut ────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        handleGenerate();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [handleGenerate]);
 
   // ── Copy handler ────────────────────────────────────────────────────────
   const handleCopyFile = useCallback(async (content: string) => {
@@ -483,6 +501,9 @@ export function RTOSArchitect() {
             "🧠 Architect Firmware →"
           )}
         </motion.button>
+        <p className="text-xs text-[#6B6B8A] font-mono mt-2">
+          ⌘ + Enter to generate
+        </p>
 
         {/* Indeterminate progress bar while loading */}
         {isLoading && (
@@ -502,6 +523,7 @@ export function RTOSArchitect() {
       </motion.div>
 
       {/* ─── Output Section ─── */}
+      <div ref={outputRef}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -704,6 +726,7 @@ export function RTOSArchitect() {
           </div>
         )}
       </motion.div>
+      </div>
     </div>
   );
 }

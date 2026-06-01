@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,7 @@ export function SnippetGenerator() {
   const [generatedCode, setGeneratedCode] = useState("");
   const [hasGenerated, setHasGenerated] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const outputRef = useRef<HTMLDivElement>(null);
 
   // Get dynamic parameter definitions for the selected peripheral
   const peripheralParams = peripheral ? getPeripheralParams(peripheral) : [];
@@ -67,6 +68,7 @@ export function SnippetGenerator() {
     setGeneratedCode("");
     setError(null);
     setHasGenerated(false);
+    outputRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
     try {
       const response = await fetch("/api/generate-snippet", {
@@ -117,6 +119,18 @@ export function SnippetGenerator() {
       setIsStreaming(false);
     }
   }, [mcu, peripheral, codeStyle, paramValues]);
+
+  // ── Ctrl+Enter keyboard shortcut ──────────────────────────────────────
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        handleGenerate();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [handleGenerate]);
 
   // ── Download handler ──────────────────────────────────────────────────
   const handleDownload = useCallback(() => {
@@ -328,6 +342,9 @@ export function SnippetGenerator() {
             "⚡ Generate Code"
           )}
         </motion.button>
+        <p className="text-xs text-[#6B6B8A] font-mono mt-2">
+          ⌘ + Enter to generate
+        </p>
 
         {/* Error display */}
         {error && (
@@ -364,6 +381,7 @@ export function SnippetGenerator() {
       </motion.div>
 
       {/* ─── Right Panel: Output ─── */}
+      <div ref={outputRef}>
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -467,6 +485,7 @@ export function SnippetGenerator() {
           </p>
         )}
       </motion.div>
+      </div>
     </div>
   );
 }

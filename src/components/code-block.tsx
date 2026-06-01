@@ -151,21 +151,15 @@ export function CodeBlock({
             </span>
           </div>
         )}
-        <div className="p-4 space-y-2">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3">
-              {showLineNumbers && (
-                <div className="w-8 h-4 rounded animate-shimmer" />
-              )}
-              <div
-                className="h-4 rounded animate-shimmer"
-                style={{
-                  width: `${Math.random() * 40 + 30}%`,
-                  animationDelay: `${i * 0.1}s`,
-                }}
-              />
-            </div>
-          ))}
+        <div className="flex flex-col items-center justify-center h-full min-h-[200px] space-y-3 opacity-30">
+          <div className="w-12 h-12 border-2 border-[#1E1E2E] rounded-lg flex items-center justify-center font-mono text-lg text-[#6B6B8A]">
+            {`{ }`}
+          </div>
+          <p
+            className="font-mono text-xs text-[#6B6B8A]"
+          >
+            Your generated code will appear here
+          </p>
         </div>
       </div>
     );

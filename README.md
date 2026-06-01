@@ -20,9 +20,10 @@ Styled under the "Industrial Precision" design system, FirmForge replicates the 
 6. [Project Directory Structure](#project-directory-structure)
 7. [Design System Specifications](#design-system-specifications)
 8. [Setup and Installation](#setup-and-installation)
-9. [Deployment](#deployment)
-10. [HackIndia 2026 Team Attribution](#hackindia-2026-team-attribution)
-11. [License](#license)
+9. [Deployment and Serverless Configuration](#deployment-and-serverless-configuration)
+10. [Security and Rate Limiting](#security-and-rate-limiting)
+11. [HackIndia 2026 Team Attribution](#hackindia-2026-team-attribution)
+12. [License](#license)
 
 ---
 
@@ -352,18 +353,65 @@ FirmForge uses a custom design system designed to replicate high-precision instr
 
 ---
 
-## Deployment
+## Deployment and Serverless Configuration
 
-FirmForge is optimized for hosting on the Vercel platform:
+FirmForge is optimized for serverless hosting on Vercel. Due to the high compute overhead and token length requirements associated with multi-file RTOS workspace synthesis, specific serverless function runtime timeouts have been configured to prevent premature execution termination.
 
-1. Connect your repository to your [Vercel Dashboard](https://vercel.com).
-2. Configure the `ANTHROPIC_API_KEY` in the project's Environment Variables settings.
-3. Deploy the application. Vercel automatically detects Next.js configurations.
+### Serverless Functions Timeout Configuration
 
-Alternatively, execute deployment workflows directly from the command line:
-```bash
-npx vercel --prod
+A `vercel.json` configuration file is established in the root directory to extend the default execution duration limit for the backend API endpoints:
+
+```json
+{
+  "functions": {
+    "src/app/api/generate-snippet/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/generate-rtos/route.ts": {
+      "maxDuration": 120
+    }
+  }
+}
 ```
+
+* **Snippet Generator Endpoint (`/api/generate-snippet`)**: Configured with a maximum duration of 60 seconds to support single-file peripheral driver assembly.
+* **RTOS Architect Workspace Endpoint (`/api/generate-rtos`)**: Configured with a maximum duration of 120 seconds to allow the Anthropic Claude API enough time to stream three fully formed project files (`main.c`, `tasks.h`, `config.h`) without gateway interruption.
+
+### Security Headers and Optimizations
+
+In the `next.config.ts` configuration, global HTTP response security headers are enforced for API routes to protect client integrations, along with package import optimizations for animations:
+
+* **X-Content-Type-Options: `nosniff`**: Prevents MIME-type sniffing by browsers, forcing them to adhere strictly to the declared content-type headers.
+* **X-Frame-Options: `DENY`**: Protects the API endpoints from clickjacking attacks by ensuring the response content cannot be embedded inside external iframe components.
+* **Framer Motion Optimization**: Package imports for `framer-motion` are optimized to reduce bundle sizes.
+
+---
+
+## Security and Rate Limiting
+
+To maintain service stability, prevent excessive API token consumption, and mitigate Denial of Service (DoS) attempts, a high-performance in-memory rate limiting mechanism is implemented in `src/lib/rate-limit.ts`.
+
+### Architecture and Design
+
+* **Fixed-Window Design**: Requests are monitored on an IP-based key with a sliding/fixed 1-minute window reset strategy.
+* **Limit Enforcements**: A maximum of 10 API generation requests is allowed per IP address every minute.
+* **Automatic Garbage Collection**: An active background garbage collection interval runs every 5 minutes, automatically removing expired client IP records to ensure memory leaks do not occur.
+* **IP Resolution**: The rate limiter attempts to resolve the client IP address using standard proxy headers:
+  1. `x-forwarded-for` (primary proxy list header)
+  2. `x-real-ip` (fallback direct proxy header)
+  3. Defaulting to a localized fallback if no headers are provided.
+
+### Rate Limiting Responses
+
+When a client surpasses the threshold, the API routes reject the request with an HTTP status code `429 Too Many Requests`. The response includes metadata indicating when the window resets:
+
+```json
+{
+  "error": "Rate limit exceeded. Try again in 45 seconds."
+}
+```
+
+Additionally, a standard `Retry-After` header is included in the HTTP headers indicating the number of seconds to wait.
 
 ---
 

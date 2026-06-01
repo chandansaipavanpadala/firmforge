@@ -24,27 +24,46 @@ const syne = Syne({
 });
 
 export const metadata: Metadata = {
-  title: "FirmForge — AI Firmware Code Generator for Embedded Engineers",
+  title: {
+    default: "FirmForge — Firmware from a Single Prompt",
+    template: "%s | FirmForge",
+  },
   description:
-    "Generate production-ready embedded C code for STM32, ESP32, Arduino and more. From peripheral snippets to full RTOS architectures — powered by AI.",
+    "Generate production-ready embedded C firmware for STM32, ESP32, " +
+    "Arduino and more. Peripheral snippets and full RTOS architectures " +
+    "from plain English prompts.",
   keywords: [
-    "firmware",
     "embedded C",
     "STM32",
     "ESP32",
-    "Arduino",
-    "RTOS",
     "FreeRTOS",
-    "code generator",
+    "firmware generator",
     "microcontroller",
+    "UART",
+    "SPI",
+    "I2C",
+    "AI coding tool",
     "ECE",
   ],
   authors: [{ name: "FirmForge" }],
   openGraph: {
-    title: "FirmForge — AI Firmware Code Generator",
+    title: "FirmForge — Firmware from a Single Prompt",
     description:
-      "Generate production-ready embedded C code for STM32, ESP32, Arduino and more.",
+      "Generate embedded C firmware for STM32, ESP32, Arduino and " +
+      "more using AI. Peripheral snippets and full RTOS architectures.",
+    url: "https://firmforge.vercel.app",
+    siteName: "FirmForge",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FirmForge — Firmware from a Single Prompt",
+    description:
+      "AI-powered embedded C firmware generator for ECE engineers.",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
