@@ -75,7 +75,7 @@ export function SnippetGenerator() {
           >
             Select MCU
           </label>
-          <Select value={mcu} onValueChange={setMcu}>
+          <Select value={mcu} onValueChange={(v) => setMcu(v ?? "")}>
             <SelectTrigger className="w-full bg-[#0D0D14] border-[#1E1E2E] text-[#E8E8F0] focus-glow h-11">
               <SelectValue placeholder="Choose your microcontroller" />
             </SelectTrigger>
@@ -101,7 +101,7 @@ export function SnippetGenerator() {
           >
             Select Peripheral
           </label>
-          <Select value={peripheral} onValueChange={setPeripheral}>
+          <Select value={peripheral} onValueChange={(v) => setPeripheral(v ?? "")}>
             <SelectTrigger className="w-full bg-[#0D0D14] border-[#1E1E2E] text-[#E8E8F0] focus-glow h-11">
               <SelectValue placeholder="Choose peripheral type" />
             </SelectTrigger>
@@ -199,7 +199,7 @@ export function SnippetGenerator() {
           >
             Code Style
           </label>
-          <Select value={codeStyle} onValueChange={setCodeStyle}>
+          <Select value={codeStyle} onValueChange={(v) => setCodeStyle(v ?? "")}>
             <SelectTrigger className="w-full bg-[#0D0D14] border-[#1E1E2E] text-[#E8E8F0] focus-glow h-11">
               <SelectValue placeholder="Choose code style" />
             </SelectTrigger>

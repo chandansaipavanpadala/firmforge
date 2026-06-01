@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Tooltip,
   TooltipContent,
@@ -192,10 +192,10 @@ export function CodeBlock({
 
           {/* Copy button */}
           <Tooltip>
-            <TooltipTrigger asChild>
+            <TooltipTrigger>
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md text-[#6B6B8A] hover:text-[#E8E8F0] hover:bg-[#1E1E2E] transition-colors"
+                className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md text-[#6B6B8A] hover:text-[#E8E8F0] hover:bg-[#1E1E2E] transition-colors cursor-pointer"
                 style={{ fontFamily: "var(--font-jetbrains-mono)" }}
               >
                 {copied ? (
@@ -241,36 +241,33 @@ export function CodeBlock({
         </div>
       )}
 
-      {/* Code content */}
       <div className="overflow-x-auto">
         <div className="code-block p-4 min-w-0">
-          <AnimatePresence mode="wait">
-            {lines.map((line, i) => (
-              <motion.div
-                key={i}
-                initial={animateIn ? { opacity: 0, x: -10 } : false}
-                animate={{ opacity: 1, x: 0 }}
-                transition={
-                  animateIn
-                    ? { duration: 0.15, delay: i * 0.03 }
-                    : undefined
-                }
-                className="flex"
-              >
-                {showLineNumbers && (
-                  <span className="code-line-number flex-shrink-0">
-                    {i + 1}
-                  </span>
-                )}
-                <span
-                  className="flex-1 whitespace-pre"
-                  dangerouslySetInnerHTML={{
-                    __html: highlightLine(line) || "&nbsp;",
-                  }}
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
+          {lines.map((line, i) => (
+            <motion.div
+              key={`line-${i}`}
+              initial={animateIn ? { opacity: 0, x: -10 } : false}
+              animate={{ opacity: 1, x: 0 }}
+              transition={
+                animateIn
+                  ? { duration: 0.15, delay: i * 0.03 }
+                  : undefined
+              }
+              className="flex"
+            >
+              {showLineNumbers && (
+                <span className="code-line-number flex-shrink-0">
+                  {i + 1}
+                </span>
+              )}
+              <span
+                className="flex-1 whitespace-pre"
+                dangerouslySetInnerHTML={{
+                  __html: highlightLine(line) || "&nbsp;",
+                }}
+              />
+            </motion.div>
+          ))}
         </div>
       </div>
 

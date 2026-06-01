@@ -56,10 +56,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${jetbrainsMono.variable} ${dmSans.variable} ${syne.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#0A0A0F] text-[#E8E8F0]">
-        <TooltipProvider delayDuration={200}>
+        <TooltipProvider delay={200}>
           <Navbar />
           <main className="flex-1 pt-16">{children}</main>
           <Footer />

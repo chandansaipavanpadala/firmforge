@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SnippetGenerator } from "@/components/snippet-generator";
 import { RTOSArchitect } from "@/components/rtos-architect";
 
-export default function GeneratePage() {
+function GenerateContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(tabParam === "rtos" ? "rtos" : "snippet");
@@ -47,51 +47,68 @@ export default function GeneratePage() {
         </motion.div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v ?? "snippet")} className="w-full">
           <TabsList className="bg-[#12121A] border border-[#1E1E2E] rounded-xl p-1 mb-8 w-full sm:w-auto">
             <TabsTrigger
               value="snippet"
-              className="rounded-lg px-5 py-2.5 text-sm font-medium data-[state=active]:bg-[#00D4FF]/10 data-[state=active]:text-[#00D4FF] data-[state=active]:shadow-[0_0_10px_rgba(0,212,255,0.15)] data-[state=inactive]:text-[#6B6B8A] transition-all cursor-pointer"
+              className="rounded-lg px-5 py-2.5 text-sm font-medium data-active:bg-[#00D4FF]/10 data-active:text-[#00D4FF] data-active:shadow-[0_0_10px_rgba(0,212,255,0.15)] transition-all cursor-pointer"
               style={{ fontFamily: "var(--font-dm-sans)" }}
             >
               ⚡ Snippet Generator
             </TabsTrigger>
             <TabsTrigger
               value="rtos"
-              className="rounded-lg px-5 py-2.5 text-sm font-medium data-[state=active]:bg-[#7C3AED]/10 data-[state=active]:text-[#7C3AED] data-[state=active]:shadow-[0_0_10px_rgba(124,58,237,0.15)] data-[state=inactive]:text-[#6B6B8A] transition-all cursor-pointer"
+              className="rounded-lg px-5 py-2.5 text-sm font-medium data-active:bg-[#7C3AED]/10 data-active:text-[#7C3AED] data-active:shadow-[0_0_10px_rgba(124,58,237,0.15)] transition-all cursor-pointer"
               style={{ fontFamily: "var(--font-dm-sans)" }}
             >
               🧠 RTOS Architect
             </TabsTrigger>
           </TabsList>
 
-          <AnimatePresence mode="wait">
-            <TabsContent value="snippet" className="mt-0">
-              <motion.div
-                key="snippet"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <SnippetGenerator />
-              </motion.div>
-            </TabsContent>
+          <TabsContent value="snippet" className="mt-0">
+            <motion.div
+              key="snippet"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <SnippetGenerator />
+            </motion.div>
+          </TabsContent>
 
-            <TabsContent value="rtos" className="mt-0">
-              <motion.div
-                key="rtos"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <RTOSArchitect />
-              </motion.div>
-            </TabsContent>
-          </AnimatePresence>
+          <TabsContent value="rtos" className="mt-0">
+            <motion.div
+              key="rtos"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <RTOSArchitect />
+            </motion.div>
+          </TabsContent>
         </Tabs>
       </div>
     </div>
+  );
+}
+
+export default function GeneratePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#0A0A0F]">
+          <div className="flex items-center gap-3">
+            <svg className="animate-spin h-5 w-5 text-[#00D4FF]" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.416" strokeDashoffset="10" strokeLinecap="round" />
+            </svg>
+            <span className="text-[#6B6B8A] text-sm" style={{ fontFamily: "var(--font-dm-sans)" }}>
+              Loading generator...
+            </span>
+          </div>
+        </div>
+      }
+    >
+      <GenerateContent />
+    </Suspense>
   );
 }

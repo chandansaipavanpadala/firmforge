@@ -83,7 +83,7 @@ export function RTOSArchitect() {
             >
               Select MCU
             </label>
-            <Select value={mcu} onValueChange={setMcu}>
+            <Select value={mcu} onValueChange={(v) => setMcu(v ?? "")}>
               <SelectTrigger className="w-full bg-[#0D0D14] border-[#1E1E2E] text-[#E8E8F0] focus-glow h-11">
                 <SelectValue placeholder="Choose MCU" />
               </SelectTrigger>
@@ -108,7 +108,7 @@ export function RTOSArchitect() {
             >
               Select RTOS
             </label>
-            <Select value={rtos} onValueChange={setRtos}>
+            <Select value={rtos} onValueChange={(v) => setRtos(v ?? "")}>
               <SelectTrigger className="w-full bg-[#0D0D14] border-[#1E1E2E] text-[#E8E8F0] focus-glow h-11">
                 <SelectValue placeholder="Choose RTOS" />
               </SelectTrigger>
