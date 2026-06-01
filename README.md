@@ -1,43 +1,76 @@
-# FirmForge
+# FirmForge: AI-Powered Firmware Generation and RTOS Workspace Architect
 
-FirmForge is an enterprise-grade firmware and RTOS (Real-Time Operating System) code generation engine specifically designed for electrical, computer, and embedded systems engineering professionals. By leveraging specialized prompt engineering and the Claude API, FirmForge provides rapid, context-aware scaffolding of hardware initialization routines, driver snippets, and multi-threaded RTOS task architectures. 
+FirmForge is an enterprise-grade web application designed for electrical, computer, and embedded systems engineering professionals. It provides automated, context-aware code generation for a wide range of microcontroller units (MCUs) and peripherals, along with a multi-file Real-Time Operating System (RTOS) architect. By integrating advanced prompt engineering with streaming Anthropic Claude API capabilities, FirmForge delivers production-ready C firmware directly into an interactive development workspace.
 
-The application is styled using an Industrial Precision theme—a near-black dark aesthetic with grid alignments, monospace labels, and custom oscilloscopic color codes. It is built to ensure correct register configurations, appropriate hardware abstraction layer (HAL) definitions, and structural conformity across a wide array of microcontroller platforms.
+Styled under the "Industrial Precision" design system, FirmForge replicates the interface of high-end engineering instruments, such as oscilloscopes and logic analyzers, featuring a dark aesthetic with grid alignments, monospace labels, and custom digital indicators.
+
+---
+
+## Table of Contents
+
+1. [System Architecture and Data Flow](#system-architecture-and-data-flow)
+2. [Key Features](#key-features)
+   - [Dynamic Snippet Generator](#dynamic-snippet-generator)
+   - [RTOS Architect Workspace](#rtos-architect-workspace)
+3. [Microcontroller and Peripheral Support Matrix](#microcontroller-and-peripheral-support-matrix)
+4. [Technical Stack](#technical-stack)
+5. [API Reference](#api-reference)
+   - [POST /api/generate-snippet](#post-apigenerate-snippet)
+   - [POST /api/generate-rtos](#post-apigenerate-rtos)
+6. [Project Directory Structure](#project-directory-structure)
+7. [Design System Specifications](#design-system-specifications)
+8. [Setup and Installation](#setup-and-installation)
+9. [Deployment](#deployment)
+10. [HackIndia 2026 Team Attribution](#hackindia-2026-team-attribution)
+11. [License](#license)
 
 ---
 
 ## System Architecture and Data Flow
 
-FirmForge is designed with a decoupled client-server architecture. The user interface handles state management, dynamic configuration form rendering, and real-time streaming consumption, while the server performs prompt synthesis, validation, and handles secure communication with the Anthropic API.
+FirmForge is designed with a decoupled client-server architecture. The user interface manages application state, dynamic configurations, streaming HTTP client consumption, and layout rendering. The backend server manages prompt synthesis, parameter validation, error boundaries, and streaming integration with the Anthropic API.
 
 Below is the detailed data flow mapping of the code generation pipeline:
 
 ![System Data Flow Diagram](public/data_flow_diagram.png)
 
-### Data Flow Execution Steps:
-1. **Configuration Input**: The user configures parameters for the target microcontroller unit (MCU), peripheral peripheral types, code style (e.g., HAL vs. Bare Metal), and specific peripheral-dependent fields (e.g., baud rate, clock speed, pins).
-2. **HTTP POST Request**: Clicking the generation action constructs an HTTP POST request targeting the `/api/generate-snippet` endpoint, transmitting a JSON payload containing the user's selections.
-3. **Endpoint Validation and Prompt Synthesis**: The Next.js API route validates the payload structure and verifies the availability of the server-side Anthropic API key. It then maps the configuration key-values into structured text parameters, combining them with a system-level engineering prompt.
-4. **SSE-based Anthropic Claude API Call**: The backend initiates a POST request to the Anthropic Messages API (`claude-sonnet-4-20250514`) with streaming enabled.
-5. **SSE Parsing and Stream Processing**: The API route receives Server-Sent Events (SSE) from Anthropic, decodes the chunks, parses the text delta contents, and constructs a chunked raw `text/plain` ReadableStream.
-6. **Client-side Rendering**: The user interface reads the incoming stream chunk-by-chunk via the browser's streams API, progressively appending the code to the state. The CodeBlock component updates in real time, showing a blinking cursor effect while active.
+### Data Flow Execution Steps
+
+#### Single-File Snippet Generation Flow
+1. **Configuration Input**: The user selects the target MCU, peripheral interface, code style, and fills out peripheral-specific parameters (e.g., baud rate, clock speed, pins).
+2. **HTTP POST Request**: The UI packages these settings into a JSON payload and dispatches a POST request to `/api/generate-snippet`.
+3. **Synthesis and Streaming**: The backend compiles user options into a system engineering prompt, invokes the Anthropic Messages API (`claude-sonnet-4-20250514`), transforms the Server-Sent Events (SSE) stream into a raw chunked stream, and pipes it back to the client.
+4. **Client-Side Rendering**: The client reads the stream progressively using the Streams API and updates the UI's code block, complete with typing animations.
+
+#### Multi-File RTOS Workspace Generation Flow
+1. **Project Definition**: The user enters a natural language description of the firmware's runtime requirements, selects an MCU and an RTOS, and configures auxiliary options (e.g., scheduling diagrams, header inclusions, comments).
+2. **Multi-File Prompt Composition**: The UI sends a POST request to `/api/generate-rtos`. The API route constructs a rigorous system prompt instructing Claude to generate exactly three files (`main.c`, `tasks.h`, `config.h`) wrapped in strict delimiters (`===FILE:filename===` and `===END===`).
+3. **Delimiter-Delimited Streaming**: The backend streams the raw text response from the Claude API, containing all three files sequentially inside the delimiters.
+4. **Regex Stream Parser**: On the client, a regular expression parser continuously parses the incoming text buffer in real time:
+   - `main.c` is captured via: `/===FILE:main\.c===([\s\S]*?)(?:===FILE:|===END===|$)/`
+   - `tasks.h` is captured via: `/===FILE:tasks\.h===([\s\S]*?)(?:===FILE:|===END===|$)/`
+   - `config.h` is captured via: `/===FILE:config\.h===([\s\S]*?)(?:===FILE:|===END===|$)/`
+5. **Interactive UI Update**: The front-end renders these components in real time. Tabs correspond to each file, showing a spinning loader if the file is currently streaming, a grey dot if idle, and a green dot when generation is complete.
 
 ---
 
 ## Key Features
 
 ### Dynamic Snippet Generator
-- **Context-Aware Parameters**: The system automatically adapts its input fields based on the selected peripheral. Each peripheral loads a strict schema containing designated data types (text, selections) and default values.
-- **Real-Time Code Streaming**: Code is rendered in a terminal-like environment line-by-line as the LLM streams the output, bypassing traditional blocking HTTP waiting states.
-- **Syntax Highlighting and Control**: Custom-built styling elements apply coloring to C syntax structure, and copy-to-clipboard and single-click downloading of files (.c format) are supported natively.
+* **Context-Aware Forms**: The generator adapts its input forms dynamically based on the selected peripheral. Form definitions are loaded from schemas in `src/lib/peripheral-params.ts`, ensuring that only relevant hardware parameters are requested.
+* **Stream-Optimized Rendering**: Outputs stream line-by-line in a terminal shell visualizer, preventing page freezing and ensuring immediate code visibility.
+* **Export Utilities**: Supports instant copy-to-clipboard functionality and direct file downloading (.c format) named according to the selected configuration.
+* **Token Metrics**: Features real-time token tracking displaying the count of generated lines and characters.
 
-### RTOS Architect
-- **Natural Language Parsing**: Allows engineers to describe firmware behaviors, system requirements, and task flows in plain English.
-- **Multi-File Workspace Scaffold**: Generates a unified RTOS implementation spanning:
-  - `main.c`: Initializes peripherals, handles task queue/mutex registration, and starts the scheduler.
-  - `tasks.h`: Declares function prototypes and lists task-specific definitions.
-  - `config.h`: Centralizes thresholds, task priorities, queue dimensions, stack allocations, and pin configurations.
-- **Customizable Architectural Toggles**: Options to include task scheduling block diagrams, system header files, and deep register-level inline comments.
+### RTOS Architect Workspace
+* **Natural Language to Firmware**: Translates English behavioral descriptions (e.g., "Read ADC channels every 100ms and stream over UART with mutex locks") into scheduled multi-threaded software.
+* **Cohesive Multi-File Generation**: Simultaneously outputs three critical files required for embedded compilation:
+  * `main.c`: Coordinates peripheral initialization, registers RTOS queues/mutexes, instantiates tasks, and starts the scheduler.
+  * `tasks.h`: Declares task prototypes, external resources, queue and semaphore handles, and task parameter structures.
+  * `config.h`: Declares physical pin assignments, software timing delays, buffer limits, interrupt priorities, and threshold macros.
+* **State and Streaming Tracking**: Each tab features a dedicated visual indicator that reflects whether a file is idle, actively streaming, or complete. A global progress bar displays indeterminate progress during operation.
+* **Workspace Stats Dashboard**: Analyzes the generated code segments to display lines of code, characters, and function count in real time.
+* **Single and Batch Downloads**: Allows developers to copy or download individual files, or batch download the entire generated workspace at once.
 
 ---
 
@@ -61,16 +94,16 @@ The table below outlines peripheral compatibility across various supported micro
 
 ## Technical Stack
 
-The system is constructed with modern, high-performance web standards to support responsive streaming interactions:
+FirmForge utilizes modern web frameworks and styling engines to deliver a responsive, performant experience:
 
-- **Framework**: Next.js 16.2.6 (utilizing App Router paradigms)
-- **Runtime Environment**: React 19.2.4
-- **Language**: TypeScript 5.0 (Strict mode compilation)
-- **Styling Engine**: Tailwind CSS 4.0
-- **Component Foundations**: `@base-ui/react` (v1.5.0) integrated via custom Shadcn UI mappings (v4.9.0)
-- **Animation Framework**: Framer Motion 12.40.0
-- **Typography Engine**: Syne (headings), DM Sans (body), and JetBrains Mono (monospaced code and labels) via Next.js Font Optimization
-- **AI Core**: Anthropic Claude API (`claude-sonnet-4-20250514` model)
+* **Framework**: Next.js 16.2.6 (App Router paradigm)
+* **Runtime Environment**: React 19.2.4
+* **Language**: TypeScript 5.0 (Strict compiler compliance)
+* **Styling Engine**: Tailwind CSS 4.0
+* **Component Primitives**: `@base-ui/react` (v1.5.0) mapping through Shadcn UI structures (v4.9.0)
+* **Animation Library**: Framer Motion 12.40.0
+* **Typography**: Syne (headings), DM Sans (body text), and JetBrains Mono (monospaced code and labels) loaded via Next.js Font Optimization
+* **AI Core**: Anthropic Claude API (`claude-sonnet-4-20250514` model)
 
 ---
 
@@ -78,7 +111,7 @@ The system is constructed with modern, high-performance web standards to support
 
 ### POST /api/generate-snippet
 
-Initiates a code-generation session based on the specified parameters, returning a chunk-by-chunk stream.
+Generates hardware initialization and driver routines based on configured parameters, outputting a chunk-by-chunk C code stream.
 
 #### Request Headers
 ```http
@@ -98,10 +131,10 @@ Content-Type: application/json
 ```
 
 *Fields Description:*
-- `mcu`: Microcontroller identifier (e.g., `"STM32F4xx"`, `"ESP32"`, `"Arduino UNO (ATmega328P)"`).
-- `peripheral`: Target peripheral interface (e.g., `"UART"`, `"SPI"`, `"I2C"`, `"DMA"`).
-- `codeStyle`: Library style configuration (e.g., `"HAL Library"`, `"Bare Metal (Registers)"`, `"Arduino IDE"`).
-- `parameters`: Key-value map representing peripheral configuration configurations.
+* `mcu`: Microcontroller identifier (e.g., `"STM32F4xx"`, `"ESP32"`, `"Arduino UNO (ATmega328P)"`).
+* `peripheral`: Target hardware peripheral (e.g., `"UART"`, `"SPI"`, `"I2C"`, `"DMA"`).
+* `codeStyle`: Driver integration style (e.g., `"HAL Library"`, `"Bare Metal (Registers)"`, `"Arduino IDE"`).
+* `parameters`: Key-value map representing peripheral configuration configurations.
 
 #### Request Example
 ```json
@@ -120,81 +153,168 @@ Content-Type: application/json
 }
 ```
 
-#### Response Formats
+#### Responses
 
 ##### Success (200 OK)
-- **Content-Type**: `text/plain; charset=utf-8`
-- **Cache-Control**: `no-cache`
-- **Transfer-Encoding**: `chunked`
-- **Body**: Streams the raw, comment-annotated C code.
+* **Content-Type**: `text/plain`
+* **Cache-Control**: `no-cache`
+* **Transfer-Encoding**: `chunked`
+* **Body**: Streams raw, commented C code.
 
 ##### Error Responses
-- **400 Bad Request**: Missing request payload fields.
+* **400 Bad Request**: Missing request payload fields.
   ```json
   { "error": "Missing required fields: mcu, peripheral, codeStyle, parameters" }
   ```
-- **500 Internal Server Error**: API Key misconfiguration or server crash.
+* **500 Internal Server Error**: API Key misconfiguration.
   ```json
   { "error": "ANTHROPIC_API_KEY is not configured. Add it to .env.local" }
   ```
-- **502 Bad Gateway**: Remote upstream connection issues with the Anthropic API.
+* **502 Bad Gateway**: Communication issue with the Anthropic API.
   ```json
   { "error": "Anthropic API error: 503" }
   ```
 
 ---
 
-## Project Structure
+### POST /api/generate-rtos
+
+Generates a three-file RTOS workspace layout based on natural language inputs, outputting a single text stream containing standard file boundaries.
+
+#### Request Headers
+```http
+Content-Type: application/json
+```
+
+#### Request Payload Schema (JSON)
+```json
+{
+  "prompt": "string",
+  "mcu": "string",
+  "rtos": "string",
+  "options": {
+    "includeSchedulingDiagram": "boolean",
+    "includeHeaders": "boolean",
+    "addDetailedComments": "boolean"
+  }
+}
+```
+
+*Fields Description:*
+* `prompt`: Detailed description of the software behavior (minimum 10 characters).
+* `mcu`: Microcontroller identifier.
+* `rtos`: Target RTOS engine (e.g., `"FreeRTOS"`, `"Zephyr"`, `"Bare Metal (No RTOS)"`).
+* `options.includeSchedulingDiagram`: Request a text-based ASCII timing/scheduling diagram.
+* `options.includeHeaders`: Request standard imports and header references in source comments.
+* `options.addDetailedComments`: Request line-by-line detailed inline documentation.
+
+#### Request Example
+```json
+{
+  "prompt": "Read DHT22 sensor data every 2s, apply moving average, write warning to GPIO if over 40C",
+  "mcu": "ESP32",
+  "rtos": "FreeRTOS",
+  "options": {
+    "includeSchedulingDiagram": true,
+    "includeHeaders": true,
+    "addDetailedComments": true
+  }
+}
+```
+
+#### Responses
+
+##### Success (200 OK)
+* **Content-Type**: `text/plain`
+* **X-Content-Type-Options**: `nosniff`
+* **Transfer-Encoding**: `chunked`
+* **Body**: Streams the three files bounded by delimiters:
+  ```text
+  ===FILE:main.c===
+  // main.c implementation code
+  ===FILE:tasks.h===
+  // tasks.h definitions code
+  ===FILE:config.h===
+  // config.h configuration macros
+  ===END===
+  ```
+
+##### Error Responses
+* **400 Bad Request**: Insufficient description length or missing parameters.
+  ```json
+  { "error": "Please describe your firmware behavior in more detail." }
+  ```
+* **400 Bad Request**: Missing MCU or RTOS indicators.
+  ```json
+  { "error": "MCU and RTOS are required." }
+  ```
+* **500 Internal Server Error**: API Key configuration missing.
+  ```json
+  { "error": "ANTHROPIC_API_KEY is not configured. Add it to .env.local" }
+  ```
+* **502 Bad Gateway**: Upstream remote API connection failed.
+  ```json
+  { "error": "Anthropic API error: 502" }
+  ```
+
+---
+
+## Project Directory Structure
+
+The structure of the codebase is outlined below, highlighting key routing and UI rendering directories:
 
 ```
 src/
 ├── app/
-│   ├── layout.tsx            # App-wide layout wrapper, font provisioning, shell elements
-│   ├── page.tsx              # Landing homepage containing product copy and hero elements
+│   ├── layout.tsx            # Application-wide shell, custom font styling, and structure
+│   ├── page.tsx              # Public-facing product landing page and marketing details
 │   ├── api/
-│   │   └── generate-snippet/
-│   │       └── route.ts      # Serverless route executing Claude streaming integration
-│   ├── generate/
-│   │   └── page.tsx          # Main interaction route housing tabs for Generator and Architect
-│   └── docs/
-│       └── page.tsx          # Documentation view detailing MCU peripheral compatibility matrix
+│   │   ├── generate-snippet/ # Streaming endpoint for single-file peripheral files
+│   │   │   └── route.ts
+│   │   └── generate-rtos/    # Delimited streaming endpoint for multi-file RTOS workspaces
+│   │       └── route.ts
+│   ├── generate/             # Interactive generation workspace workspace
+│   │   ├── layout.tsx        # Route metadata and SEO layouts for generate
+│   │   └── page.tsx          # Workspace tabs orchestrator
+│   └── docs/                 # Documentation directory outlining MCU matrices
+│       └── page.tsx
 ├── components/
-│   ├── navbar.tsx            # Main shell navigational navbar with backdrop filter styling
-│   ├── footer.tsx            # Structured footer with technical descriptors
-│   ├── code-block.tsx        # Highlighted code displays, custom clipboard copying, and cursor pulses
-│   ├── mcu-badge.tsx         # Graphic chip rendering displaying standard MCU layouts
-│   ├── snippet-generator.tsx # Component orchestrating parameters panel and streaming response state
-│   ├── rtos-architect.tsx    # Workspace workspace containing prompt architecture forms
-│   └── ui/                   # Modular base-ui components configured for Shadcn
+│   ├── navbar.tsx            # Navigational banner featuring backdrop filters and active path tracking
+│   ├── footer.tsx            # Footer featuring detailed legal and technology stack markers
+│   ├── code-block.tsx        # Monospaced code renderer, clipboard handlers, and typing cursors
+│   ├── mcu-badge.tsx         # Graphic microcontroller pinout rendering
+│   ├── snippet-generator.tsx # Parameters panels, validation states, and single-stream rendering
+│   ├── rtos-architect.tsx    # Multi-file code generation layouts, regex parser, and active statuses
+│   └── ui/                   # Modular base UI components configured for Shadcn elements
 ├── lib/
-│   ├── constants.ts          # Static lists, selection variables, and fallback boilerplate configurations
-│   ├── types.ts              # System-wide static type safety interfaces
-│   ├── peripheral-params.ts  # Validation limits and field requirements mapped per peripheral
-│   └── utils.ts              # Core utility methods (Tailwind merges, custom class helpers)
+│   ├── constants.ts          # Static constants, support lists, and boilerplate setups
+│   ├── types.ts              # Global TypeScript configurations and type guards
+│   ├── peripheral-params.ts  # Validation parameters and schemas mapped per hardware interface
+│   └── utils.ts              # Formatting utilities, including class list consolidation
 ```
 
 ---
 
 ## Design System Specifications
 
-FirmForge uses a dark engineering theme designed to replicate high-precision instrumentation dashboards:
+FirmForge uses a custom design system designed to replicate high-precision instrumentation dashboards:
 
-- **Background (Base)**: `#0A0A0F` (near-black, blue-tinted)
-- **Surface (Card/Dialog)**: `#12121A` (medium dark surface)
-- **Border/Line**: `#1E1E2E` (deep grey border accent)
-- **Primary Accent**: `#00D4FF` (oscilloscope neon cyan)
-- **Secondary Accent**: `#7C3AED` (neon purple)
-- **Indicator/Success**: `#00FF88` (digital green)
-- **Text (Active)**: `#E8E8F0` (high contrast white-grey)
-- **Text (Muted)**: `#6B6B8A` (low-contrast description grey)
+* **Background (Base)**: `#0A0A0F` (near-black, blue-tinted)
+* **Surface (Card/Dialog)**: `#12121A` (medium dark surface)
+* **Border/Line**: `#1E1E2E` (deep grey border accent)
+* **Primary Accent**: `#00D4FF` (oscilloscope neon cyan)
+* **Secondary Accent**: `#7C3AED` (neon purple)
+* **Indicator/Success**: `#00FF88` (digital green)
+* **Text (Active)**: `#E8E8F0` (high contrast white-grey)
+* **Text (Muted)**: `#6B6B8A` (low-contrast description grey)
 
 ---
 
 ## Setup and Installation
 
 ### Prerequisites
-- **Node.js**: Version 20.x or higher
-- **npm**: Version 10.x or higher
+* **Node.js**: Version 20.x or higher
+* **npm**: Version 10.x or higher
 
 ### Step-by-Step Installation
 
@@ -213,7 +333,7 @@ FirmForge uses a dark engineering theme designed to replicate high-precision ins
    ```bash
    cp .env.example .env.local
    ```
-   Open `.env.local` and configure your API key:
+   Open `.env.local` and configure your Anthropic API key:
    ```env
    ANTHROPIC_API_KEY=your_anthropic_api_key_here
    ```
@@ -234,11 +354,11 @@ FirmForge uses a dark engineering theme designed to replicate high-precision ins
 
 ## Deployment
 
-FirmForge is structured for optimal hosting on Vercel:
+FirmForge is optimized for hosting on the Vercel platform:
 
-1. Link your GitHub/GitLab repository to your [Vercel Dashboard](https://vercel.com).
-2. Add your `ANTHROPIC_API_KEY` to the project's Environment Variables settings page on Vercel.
-3. Deploy. The framework automatically detects Next.js configurations.
+1. Connect your repository to your [Vercel Dashboard](https://vercel.com).
+2. Configure the `ANTHROPIC_API_KEY` in the project's Environment Variables settings.
+3. Deploy the application. Vercel automatically detects Next.js configurations.
 
 Alternatively, execute deployment workflows directly from the command line:
 ```bash
@@ -247,11 +367,11 @@ npx vercel --prod
 
 ---
 
-## HackIndia 2026
+## HackIndia 2026 Team Attribution
 
 Developed for **HackIndia 2026**—India's largest AI and Web3 Hackathon.
 
-- **Team**: No_Name
+* **Team**: No_Name
 
 ---
 
