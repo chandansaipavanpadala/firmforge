@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SnippetGenerator } from "@/components/snippet-generator";
@@ -44,6 +45,19 @@ function GenerateContent() {
           >
             Select your MCU, configure peripherals, and generate production-ready embedded C code.
           </p>
+          <div
+            className="flex items-center gap-2 mt-3 text-xs"
+            style={{ fontFamily: "var(--font-dm-sans)" }}
+          >
+            <Link
+              href="/"
+              className="text-[#00D4FF]/60 hover:text-[#00D4FF] transition-colors"
+            >
+              Home
+            </Link>
+            <span className="text-[#6B6B8A]">→</span>
+            <span className="text-[#6B6B8A]">Generate</span>
+          </div>
         </motion.div>
 
         {/* Tabs */}
