@@ -23,10 +23,16 @@ interface CodeBlockProps {
  * Applies span classes for keywords, types, strings, comments, preprocessor, numbers.
  */
 function highlightLine(line: string): string {
+  // Escape HTML characters to prevent browser from interpreting C code as HTML tags
+  const escaped = line
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
   // Order matters: comments and strings first to avoid collisions.
 
   // Single-line comments
-  let highlighted = line.replace(
+  let highlighted = escaped.replace(
     /(\/\/.*$)/g,
     '<span class="syntax-comment">$1</span>'
   );
@@ -188,48 +194,50 @@ export function CodeBlock({
 
           {/* Copy button */}
           <Tooltip>
-            <TooltipTrigger>
-              <button
-                onClick={handleCopy}
-                className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md text-[#6B6B8A] hover:text-[#E8E8F0] hover:bg-[#1E1E2E] transition-colors cursor-pointer"
-                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-              >
-                {copied ? (
-                  <>
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#00FF88"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    <span className="text-[#00FF88]">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                    </svg>
-                    Copy
-                  </>
-                )}
-              </button>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md text-[#6B6B8A] hover:text-[#E8E8F0] hover:bg-[#1E1E2E] transition-colors cursor-pointer"
+                  style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+                >
+                  {copied ? (
+                    <>
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#00FF88"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      <span className="text-[#00FF88]">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                      Copy
+                    </>
+                  )}
+                </button>
+              }
+            />
             <TooltipContent side="bottom">
               <p>{copied ? "Copied to clipboard!" : "Copy code"}</p>
             </TooltipContent>

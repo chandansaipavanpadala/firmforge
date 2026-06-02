@@ -361,7 +361,12 @@ export default function HomePage() {
 // Inline syntax highlighter (same as code-block.tsx)
 // ─────────────────────────────────────────────────────────────
 function highlightLine(line: string): string {
-  let highlighted = line.replace(
+  const escaped = line
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  let highlighted = escaped.replace(
     /(\/\/.*$)/g,
     '<span class="syntax-comment">$1</span>'
   );

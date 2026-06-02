@@ -169,7 +169,7 @@ Content-Type: application/json
   ```
 * **500 Internal Server Error**: Token configuration missing.
   ```json
-  { "error": "GEMINI_TOKEN is not configured. Add it to .env.local" }
+  { "error": "GEMINI_API_KEY is not configured. Add it to .env.local" }
   ```
 * **502 Bad Gateway**: Communication issue with the Gemini API.
   ```json
@@ -251,7 +251,7 @@ Content-Type: application/json
   ```
 * **500 Internal Server Error**: Token configuration missing.
   ```json
-  { "error": "GEMINI_TOKEN is not configured. Add it to .env.local" }
+  { "error": "GEMINI_API_KEY is not configured. Add it to .env.local" }
   ```
 * **502 Bad Gateway**: Upstream remote API connection failed.
   ```json
@@ -334,9 +334,9 @@ FirmForge uses a custom design system designed to replicate high-precision instr
    ```bash
    cp .env.example .env.local
    ```
-   Open `.env.local` and configure your Google Gemini Token:
+   Open `.env.local` and configure your Google Gemini API Key:
    ```env
-   GEMINI_TOKEN=your_gemini_token_here
+   GEMINI_API_KEY=your_gemini_api_key_here
    ```
 
 4. **Launch Local Development Server**:
