@@ -8,23 +8,52 @@ Styled under the "Industrial Precision" design system, FirmForge replicates the 
 
 ## Table of Contents
 
-1. [System Architecture and Data Flow](#system-architecture-and-data-flow)
-2. [Key Features](#key-features)
+1. [Project Overview and Vision](#project-overview-and-vision)
+2. [System Architecture and Data Flow](#system-architecture-and-data-flow)
+3. [Key Features](#key-features)
    - [Dynamic Snippet Generator](#dynamic-snippet-generator)
    - [RTOS Architect Workspace](#rtos-architect-workspace)
-3. [Application Interface Screenshots](#application-interface-screenshots)
-4. [Microcontroller and Peripheral Support Matrix](#microcontroller-and-peripheral-support-matrix)
-5. [Technical Stack](#technical-stack)
-6. [API Reference](#api-reference)
+4. [Application Interface Screenshots](#application-interface-screenshots)
+5. [Microcontroller and Peripheral Support Matrix](#microcontroller-and-peripheral-support-matrix)
+6. [Technical Stack](#technical-stack)
+7. [API Reference](#api-reference)
    - [POST /api/generate-snippet](#post-apigenerate-snippet)
    - [POST /api/generate-rtos](#post-apigenerate-rtos)
-7. [Project Directory Structure](#project-directory-structure)
-8. [Design System Specifications](#design-system-specifications)
-9. [Setup and Installation](#setup-and-installation)
-10. [Deployment and Serverless Configuration](#deployment-and-serverless-configuration)
-11. [Security and Rate Limiting](#security-and-rate-limiting)
-12. [HackIndia 2026 Team Attribution](#hackindia-2026-team-attribution)
-13. [License](#license)
+8. [Project Directory Structure](#project-directory-structure)
+9. [Design System Specifications](#design-system-specifications)
+10. [Setup and Installation](#setup-and-installation)
+11. [Deployment and Serverless Configuration](#deployment-and-serverless-configuration)
+12. [Security and Rate Limiting](#security-and-rate-limiting)
+13. [HackIndia 2026 Team Attribution](#hackindia-2026-team-attribution)
+14. [License](#license)
+
+---
+
+## Project Overview and Vision
+
+### The Problem: Why is Firmware Development Hard?
+
+Embedded systems development is one of the most technically demanding disciplines in electronics and computer engineering. Every time an engineer needs to initialize a peripheral—whether it is a UART interface, an SPI sensor, or an I2C display—they must manually cross-reference dense, hundreds-of-pages-long datasheets, look up exact register names and bit masks for their specific microcontroller, and write repetitive boilerplate initialization code from scratch. For a single STM32 UART setup, this process can take 30–45 minutes even for an experienced engineer.
+
+The problem gets significantly worse when building real-time systems. Designing a FreeRTOS-based firmware architecture—with multiple tasks, queues, semaphores, and proper scheduling priorities—requires deep knowledge of RTOS internals, MCU-specific APIs, and careful system design. Most ECE students and junior engineers spend more time writing boilerplate and configuration than actually solving their core engineering problem.
+
+Existing tools like ChatGPT and GitHub Copilot attempt to help, but they fail in this domain for a critical reason: they are general-purpose. They regularly hallucinate wrong register names, generate code for the wrong MCU variant, mix up HAL and bare-metal APIs, and produce incomplete implementations that silently break at runtime. There is no focused, reliable, domain-specific tool built for embedded firmware generation.
+
+### The Solution: The "EmbeddedPilot" Vision
+
+FirmForge solves this problem directly. It is a web-based AI developer tool purpose-built for ECE engineers and embedded systems developers, implementing the **"EmbeddedPilot"** vision of natural language to hardware orchestration. It provides two core workspace components:
+
+1. **Peripheral Snippet Generator**: An engineer selects their MCU (STM32F4, ESP32, Arduino, RP2040, nRF52840 and more), selects a peripheral (UART, SPI, I2C, ADC, DMA, Timers, GPIO, Interrupts, Watchdog, DAC), fills in specific parameters like baud rate, pin numbers, clock speed, and code style preference (HAL, bare-metal registers, or Arduino IDE), and clicks generate. FirmForge streams back complete, commented, copy-paste-ready C code in seconds—correctly matched to that specific MCU's register map and toolchain.
+2. **RTOS Architect Workspace**: An engineer describes their firmware behavior in plain English—for example, "Read temperature from DHT22 every 2 seconds, apply a moving average filter using a FreeRTOS task, and publish via MQTT over WiFi. Trigger a GPIO alarm if temperature exceeds 35°C." FirmForge generates a complete, multi-file firmware project: `main.c` with full peripheral initialization and task creation, `tasks.h` with all task declarations and RTOS handles, and `config.h` with all constants, pin definitions, and RTOS configuration. All three files stream in live and are downloadable.
+
+This is exactly where vibe coding meets hardware engineering. Instead of a developer writing every register configuration manually, they describe the outcome they want and the EmbeddedPilot engine handles the implementation. The barrier to building embedded systems is dramatically reduced—making hardware development accessible to students, makers, and software developers who want to work with microcontrollers but get stuck at the firmware layer.
+
+### The Tech: High-Performance Architecture
+
+FirmForge is built using a modern, stream-optimized technical stack:
+* **Next.js**: The core framework driving the application, utilizing the App Router paradigm to manage dynamic layouts, state management, and stream consumer structures.
+* **Google Gemini API**: Generates MCU-specific C-code using advanced system engineering prompts. The system features a resilient fallback chain traversing `gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-1.5-flash`, and `gemini-flash-latest` to guarantee service availability even during high-demand periods.
+* **Vercel**: Deployed on Vercel with optimized serverless function durations (up to 120 seconds) to ensure complex, multi-file RTOS workspaces can stream entirely without connection termination.
 
 ---
 
@@ -358,6 +387,7 @@ FirmForge uses a custom design system designed to replicate high-precision instr
 
 1. **Clone the Repository** and navigate to the project directory:
    ```bash
+   git clone https://github.com/HackIndiaXYZ/vibe-coding-hackathon-2026-indias-largest-ai-web3-event-hackindia-noname.git
    cd vibe-coding-hackathon-2026-indias-largest-ai-web3-event-hackindia-noname
    ```
 

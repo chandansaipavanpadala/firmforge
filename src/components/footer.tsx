@@ -41,7 +41,7 @@ export function Footer() {
           {/* Right: Links */}
           <div className="flex items-center gap-6">
             <a
-              href="https://github.com"
+              href="https://github.com/HackIndiaXYZ/vibe-coding-hackathon-2026-indias-largest-ai-web3-event-hackindia-noname"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-[#6B6B8A] hover:text-[#00D4FF] transition-colors"
@@ -57,7 +57,7 @@ export function Footer() {
               Docs
             </Link>
             <a
-              href="https://github.com"
+              href="https://github.com/HackIndiaXYZ/vibe-coding-hackathon-2026-indias-largest-ai-web3-event-hackindia-noname/issues"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-[#6B6B8A] hover:text-[#00D4FF] transition-colors"
