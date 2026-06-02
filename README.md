@@ -457,6 +457,9 @@ Additionally, a standard `Retry-After` header is included in the HTTP headers in
 Developed for **HackIndia 2026**—India's largest AI and Web3 Hackathon.
 
 * **Team**: No_Name
+* **Team Members**:
+  - Chandan Sai Pavan Padala ([GitHub Profile](https://github.com/chandansaipavanpadala))
+  - D Rushikesh ([GitHub Profile](https://github.com/rushikesh-D69))
 
 ---
 
