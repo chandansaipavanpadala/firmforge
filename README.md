@@ -167,9 +167,9 @@ Content-Type: application/json
   ```json
   { "error": "Missing required fields: mcu, peripheral, codeStyle, parameters" }
   ```
-* **500 Internal Server Error**: API Key misconfiguration.
+* **500 Internal Server Error**: Token configuration missing.
   ```json
-  { "error": "GEMINI_API_KEY is not configured. Add it to .env.local" }
+  { "error": "GEMINI_TOKEN is not configured. Add it to .env.local" }
   ```
 * **502 Bad Gateway**: Communication issue with the Gemini API.
   ```json
@@ -249,9 +249,9 @@ Content-Type: application/json
   ```json
   { "error": "MCU and RTOS are required." }
   ```
-* **500 Internal Server Error**: API Key configuration missing.
+* **500 Internal Server Error**: Token configuration missing.
   ```json
-  { "error": "GEMINI_API_KEY is not configured. Add it to .env.local" }
+  { "error": "GEMINI_TOKEN is not configured. Add it to .env.local" }
   ```
 * **502 Bad Gateway**: Upstream remote API connection failed.
   ```json
@@ -334,9 +334,9 @@ FirmForge uses a custom design system designed to replicate high-precision instr
    ```bash
    cp .env.example .env.local
    ```
-   Open `.env.local` and configure your Google Gemini API key:
+   Open `.env.local` and configure your Google Gemini Token:
    ```env
-   GEMINI_API_KEY=your_gemini_api_key_here
+   GEMINI_TOKEN=your_gemini_token_here
    ```
 
 4. **Launch Local Development Server**:
