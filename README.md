@@ -12,18 +12,19 @@ Styled under the "Industrial Precision" design system, FirmForge replicates the 
 2. [Key Features](#key-features)
    - [Dynamic Snippet Generator](#dynamic-snippet-generator)
    - [RTOS Architect Workspace](#rtos-architect-workspace)
-3. [Microcontroller and Peripheral Support Matrix](#microcontroller-and-peripheral-support-matrix)
-4. [Technical Stack](#technical-stack)
-5. [API Reference](#api-reference)
+3. [Application Interface Screenshots](#application-interface-screenshots)
+4. [Microcontroller and Peripheral Support Matrix](#microcontroller-and-peripheral-support-matrix)
+5. [Technical Stack](#technical-stack)
+6. [API Reference](#api-reference)
    - [POST /api/generate-snippet](#post-apigenerate-snippet)
    - [POST /api/generate-rtos](#post-apigenerate-rtos)
-6. [Project Directory Structure](#project-directory-structure)
-7. [Design System Specifications](#design-system-specifications)
-8. [Setup and Installation](#setup-and-installation)
-9. [Deployment and Serverless Configuration](#deployment-and-serverless-configuration)
-10. [Security and Rate Limiting](#security-and-rate-limiting)
-11. [HackIndia 2026 Team Attribution](#hackindia-2026-team-attribution)
-12. [License](#license)
+7. [Project Directory Structure](#project-directory-structure)
+8. [Design System Specifications](#design-system-specifications)
+9. [Setup and Installation](#setup-and-installation)
+10. [Deployment and Serverless Configuration](#deployment-and-serverless-configuration)
+11. [Security and Rate Limiting](#security-and-rate-limiting)
+12. [HackIndia 2026 Team Attribution](#hackindia-2026-team-attribution)
+13. [License](#license)
 
 ---
 
@@ -72,6 +73,42 @@ Below is the detailed data flow mapping of the code generation pipeline:
 * **State and Streaming Tracking**: Each tab features a dedicated visual indicator that reflects whether a file is idle, actively streaming, or complete. A global progress bar displays indeterminate progress during operation.
 * **Workspace Stats Dashboard**: Analyzes the generated code segments to display lines of code, characters, and function count in real time.
 * **Single and Batch Downloads**: Allows developers to copy or download individual files, or batch download the entire generated workspace at once.
+
+---
+
+## Application Interface Screenshots
+
+This section presents the graphical user interfaces and operational flows of the FirmForge platform.
+
+### Dynamic Snippet Generator
+
+The Dynamic Snippet Generator provides developers with an interface to construct driver code for specific peripherals.
+
+#### Configuration Input Panel
+The configuration interface enables selection of the microcontroller unit, peripheral, and code structure style. Dynamic forms render hardware-specific parameters based on the selected peripheral configuration.
+
+![Dynamic Snippet Generator Configuration](Screenshots/Screenshot%202026-06-02%20164525.png)
+
+#### Generated Output View
+Once code generation is completed, the result is streamed. The interface displays line numbers, syntax highlighting, copying options, and direct file download mechanisms.
+
+![Dynamic Snippet Generator Output View](Screenshots/Screenshot%202026-06-02%20164543.png)
+
+---
+
+### RTOS Architect Workspace
+
+The RTOS Architect Workspace translates natural language descriptions into complete multi-file project structures.
+
+#### Specification and Configuration Input Panel
+Users describe expected system execution flow in natural language. Form selectors are available for target microcontrollers and RTOS targets, alongside toggles for timing diagrams, header inclusion, and detailed comment generation.
+
+![RTOS Architect Project Setup Input](Screenshots/Screenshot%202026-06-02%20165127.png)
+
+#### Multi-file Workspace Output View
+The workspace output page renders `main.c`, `tasks.h`, and `config.h` in tab views. State indicators show active, complete, or idle files. It provides download buttons for single files and batch files.
+
+![RTOS Architect Multi-File Workspace Outputs](Screenshots/Screenshot%202026-06-02%20165140.png)
 
 ---
 
