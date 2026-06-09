@@ -98,6 +98,144 @@
 }
 
 /* ===================================================================
+   Light Theme Overrides
+   =================================================================== */
+
+.light {
+  --background: #F8F9FC;
+  --foreground: #1A1A2E;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A2E;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A2E;
+  --primary: #0095B3;
+  --primary-foreground: #FFFFFF;
+  --secondary: #6D28D9;
+  --secondary-foreground: #FFFFFF;
+  --muted: #E8EAF0;
+  --muted-foreground: #64748B;
+  --accent: #E8EAF0;
+  --accent-foreground: #1A1A2E;
+  --destructive: #DC2626;
+  --border: #D4D8E0;
+  --input: #D4D8E0;
+  --ring: #0095B3;
+  --chart-1: #0095B3;
+  --chart-2: #6D28D9;
+  --chart-3: #059669;
+  --chart-4: #DC2626;
+  --chart-5: #D97706;
+  --sidebar: #F8F9FC;
+  --sidebar-foreground: #1A1A2E;
+  --sidebar-primary: #0095B3;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #E8EAF0;
+  --sidebar-accent-foreground: #1A1A2E;
+  --sidebar-border: #D4D8E0;
+  --sidebar-ring: #0095B3;
+}
+
+.light body {
+  background-color: #F8F9FC;
+  color: #1A1A2E;
+}
+
+.light ::-webkit-scrollbar-track {
+  background: #F0F1F5;
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: #C4C8D4;
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: #A0A4B4;
+}
+
+.light .bg-grid-pattern {
+  background-image: radial-gradient(circle, #D4D8E0 1px, transparent 1px);
+}
+
+.light .bg-grid-pattern-subtle {
+  background-image: radial-gradient(circle, rgba(212, 216, 224, 0.5) 1px, transparent 1px);
+}
+
+.light .navbar-blur {
+  background-color: rgba(248, 249, 252, 0.85);
+}
+
+.light .glow-cyan {
+  box-shadow: 0 0 20px rgba(0, 149, 179, 0.2);
+}
+
+.light .glow-cyan-sm {
+  box-shadow: 0 0 10px rgba(0, 149, 179, 0.15);
+}
+
+.light .glow-violet {
+  box-shadow: 0 0 20px rgba(109, 40, 217, 0.2);
+}
+
+.light .focus-glow:focus,
+.light .focus-glow:focus-within {
+  box-shadow: 0 0 0 2px rgba(0, 149, 179, 0.2),
+              0 0 20px rgba(0, 149, 179, 0.1);
+  border-color: #0095B3;
+}
+
+/* Light theme syntax highlighting */
+.light .syntax-keyword {
+  color: #0095B3;
+}
+
+.light .syntax-type {
+  color: #6D28D9;
+}
+
+.light .syntax-string {
+  color: #059669;
+}
+
+.light .syntax-comment {
+  color: #94A3B8;
+}
+
+.light .syntax-number {
+  color: #D97706;
+}
+
+.light .syntax-function {
+  color: #1A1A2E;
+}
+
+.light .syntax-preprocessor {
+  color: #DC2626;
+}
+
+.light .syntax-macro {
+  color: #D97706;
+}
+
+.light .animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    #E8EAF0 25%,
+    #D4D8E0 50%,
+    #E8EAF0 75%
+  );
+  background-size: 200% 100%;
+}
+
+.light [data-radix-select-viewport] {
+  background-color: #FFFFFF !important;
+}
+
+.light [data-radix-select-content] {
+  background-color: #FFFFFF !important;
+  border-color: #D4D8E0 !important;
+}
+
+/* ===================================================================
    Base Styles
    =================================================================== */
 

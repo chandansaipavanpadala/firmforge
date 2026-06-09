@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, DM_Sans, Syne } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/components/theme-provider";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import "./globals.css";
@@ -76,14 +77,17 @@ export default function RootLayout({
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${jetbrainsMono.variable} ${dmSans.variable} ${syne.variable} h-full antialiased`}
+      className={`dark ${jetbrainsMono.variable} ${dmSans.variable} ${syne.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-[#0A0A0F] text-[#E8E8F0]">
-        <TooltipProvider delay={200}>
-          <Navbar />
-          <main className="flex-1 pt-16">{children}</main>
-          <Footer />
-        </TooltipProvider>
+      <body className="min-h-full flex flex-col bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300">
+        <ThemeProvider>
+          <TooltipProvider delay={200}>
+            <Navbar />
+            <main className="flex-1 pt-16">{children}</main>
+            <Footer />
+          </TooltipProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
