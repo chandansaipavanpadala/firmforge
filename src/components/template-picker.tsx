@@ -32,27 +32,25 @@ export function TemplatePicker(props: TemplatePickerProps) {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const templates = type === "snippet" ? SNIPPET_TEMPLATES : RTOS_TEMPLATES;
+
   const categories = useMemo(() => getCategories(type), [type]);
 
   const filtered = useMemo(() => {
-    let result = templates;
-    if (selectedCategory) {
-      result = result.filter((t) => t.category === selectedCategory);
-    }
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (t) =>
-          t.name.toLowerCase().includes(q) ||
-          t.description.toLowerCase().includes(q) ||
-          t.category.toLowerCase().includes(q)
-      );
-    }
-    return result;
-  }, [templates, selectedCategory, search]);
+    const allTemplates = type === "snippet" ? SNIPPET_TEMPLATES : RTOS_TEMPLATES;
+    const byCategory = selectedCategory
+      ? allTemplates.filter((t) => t.category === selectedCategory)
+      : allTemplates;
+    if (!search.trim()) return byCategory;
+    const q = search.toLowerCase();
+    return byCategory.filter(
+      (t) =>
+        t.name.toLowerCase().includes(q) ||
+        t.description.toLowerCase().includes(q) ||
+        t.category.toLowerCase().includes(q)
+    );
+  }, [type, selectedCategory, search]);
 
-  const handleSelect = (template: (typeof templates)[number]) => {
+  const handleSelect = (template: SnippetTemplate | RTOSTemplate) => {
     if (type === "snippet") {
       (props as SnippetTemplatePickerProps).onSelect(
         template as SnippetTemplate
@@ -89,7 +87,7 @@ export function TemplatePicker(props: TemplatePickerProps) {
           Use a template
         </span>
         <span className="text-[10px] text-[#6B6B8A]/50 bg-[#1E1E2E] px-1.5 py-0.5 rounded">
-          {templates.length}
+          {type === "snippet" ? SNIPPET_TEMPLATES.length : RTOS_TEMPLATES.length}
         </span>
       </button>
 

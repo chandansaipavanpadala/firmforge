@@ -13,6 +13,10 @@ Styled under the "Industrial Precision" design system, FirmForge replicates the 
 3. [Key Features](#key-features)
    - [Dynamic Snippet Generator](#dynamic-snippet-generator)
    - [RTOS Architect Workspace](#rtos-architect-workspace)
+   - [Code History](#code-history)
+   - [Prompt Templates Library](#prompt-templates-library)
+   - [Share Generated Code](#share-generated-code)
+   - [Dark and Light Theme Toggle](#dark-and-light-theme-toggle)
 4. [Application Interface Screenshots](#application-interface-screenshots)
 5. [Microcontroller and Peripheral Support Matrix](#microcontroller-and-peripheral-support-matrix)
 6. [Technical Stack](#technical-stack)
@@ -103,6 +107,45 @@ Below is the detailed data flow mapping of the code generation pipeline:
 * **Workspace Stats Dashboard**: Analyzes the generated code segments to display lines of code, characters, and function count in real time.
 * **Single and Batch Downloads**: Allows developers to copy or download individual files, or batch download the entire generated workspace at once.
 
+### Code History
+
+FirmForge automatically persists the last 10 generated code outputs in the browser's `localStorage`, providing engineers with instant access to recent work without requiring regeneration. This feature operates entirely client-side, requiring no backend infrastructure or user authentication.
+
+* **Persistent Local Storage**: Every successful code generation (both snippet and RTOS workspace outputs) is automatically saved with full metadata including the target MCU, peripheral or RTOS type, line count, and a precise timestamp.
+* **Slide-Out History Panel**: A dedicated sidebar panel, accessible via a "History" button on the output panel, opens with a smooth slide-in animation. Each entry displays its type (Snippet or RTOS), configuration summary, generation timestamp formatted as relative time (e.g., "5m ago", "2h ago"), and total line count.
+* **Preview and Restore**: Clicking any history entry opens an inline code preview panel showing the first 600 characters of the generated output. A "Restore" button injects the stored code directly back into the active code viewer, allowing engineers to compare previous outputs or recover work without re-invoking the AI model.
+* **Entry Management**: Individual entries can be deleted via a hover-revealed delete button, and a "Clear All" action purges the entire history. Storage is capped at 10 entries using a first-in-first-out (FIFO) eviction policy.
+* **RTOS Multi-File Support**: For RTOS Architect outputs, all three generated files (`main.c`, `tasks.h`, `config.h`) are serialized and stored as a single history entry. On restore, all three files are deserialized and injected back into the tabbed workspace view.
+
+### Prompt Templates Library
+
+To eliminate the cold-start problem for new users and accelerate workflow for experienced engineers, FirmForge includes a curated library of over 30 pre-built firmware prompt templates spanning common embedded systems tasks.
+
+* **Extensive Coverage**: Templates span 10 categories including Sensors, Communication, Motor Control, Timing, Safety, Arduino, ESP32, Bare Metal, IoT, and Signal Processing. Each template maps directly to real-world firmware tasks such as "DHT22 Temperature Logger", "SPI Flash Memory (W25Q64)", "Servo Motor PWM Control", "DMA-driven UART Transfer", and "PID Motor Speed Controller".
+* **One-Click Auto-Fill**: Selecting a template from the dropdown immediately populates all relevant form fields. For snippet templates, this includes the MCU, peripheral, code style, and hardware parameters. For RTOS templates, this fills the natural language description, MCU, and RTOS selection.
+* **Searchable Interface**: The template picker includes a real-time search field that filters templates by name, description, or category. Category filter pills allow users to narrow results to specific domains (e.g., viewing only "Motor Control" templates).
+* **Dual-Mode Operation**: The template library is context-aware. When accessed from the Snippet Generator tab, it displays only snippet-type templates with peripheral configurations. When accessed from the RTOS Architect tab, it displays only RTOS-type templates with full behavioral descriptions.
+
+### Share Generated Code
+
+FirmForge implements a "firmware pastebin" feature that allows engineers to generate unique shareable URLs for any code output. This enables seamless collaboration with teammates, sharing on engineering forums, and embedding in documentation.
+
+* **Supabase-Powered Backend**: Shared snippets are stored in a Supabase PostgreSQL database with a `snippets` table containing the code content, structured metadata (MCU, peripheral, RTOS, code style), a unique 6-character short identifier, and a creation timestamp.
+* **Unique Short URLs**: Each shared snippet receives a URL-safe 6-character identifier (e.g., `/share/aB3xY9`), generating clean, memorable URLs suitable for embedding in chat messages, emails, and forum posts.
+* **Public Read-Only Viewer**: The `/share/[id]` route renders a SEO-optimized public page displaying the shared code with full syntax highlighting, metadata badges (MCU, peripheral, type), and creation date. For RTOS outputs, all three files are displayed in separate code blocks.
+* **Clipboard Integration**: After generating a share link, the URL is automatically copied to the clipboard with visual confirmation.
+* **Graceful Degradation**: The share feature is designed with graceful degradation. If Supabase environment variables (`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`) are not configured, the share button is hidden entirely and all other functionality operates normally. This allows local development and self-hosted deployments to function without a database dependency.
+
+### Dark and Light Theme Toggle
+
+FirmForge supports both dark and light color schemes, enabling engineers to switch between a focused dark environment for extended development sessions and a presentation-friendly light mode for demos, documentation, and screen sharing.
+
+* **System Preference Detection**: On first visit, FirmForge detects the operating system's color scheme preference via the `prefers-color-scheme` CSS media query and initializes the appropriate theme automatically.
+* **Persistent Preference**: Once a user explicitly toggles the theme, their choice is persisted in `localStorage` under the `firmforge-theme` key and applied on all subsequent visits, overriding system defaults.
+* **Animated Toggle Control**: The theme toggle in the navigation bar features a smooth animated transition between a sun icon (light mode) and a moon icon (dark mode) using Framer Motion scale and rotation keyframes.
+* **Comprehensive Theme Coverage**: The light theme provides complete CSS variable overrides for all design tokens including backgrounds, text colors, borders, scrollbar styling, glow effects, syntax highlighting colors, grid patterns, shimmer animations, and dropdown/select component overlays. Over 30 CSS variables are remapped to ensure visual consistency across all components.
+* **Seamless Transition**: Theme switching applies a 300ms CSS transition to background and text colors, preventing jarring visual shifts and maintaining a polished user experience.
+
 ---
 
 ## Application Interface Screenshots
@@ -171,6 +214,7 @@ FirmForge utilizes modern web frameworks and styling engines to deliver a respon
 * **Animation Library**: Framer Motion 12.40.0
 * **Typography**: Syne (headings), DM Sans (body text), and JetBrains Mono (monospaced code and labels) loaded via Next.js Font Optimization
 * **AI Core**: Google Gemini API (using the `@google/generative-ai` SDK and the `gemini-2.0-flash` model)
+* **Database (Optional)**: Supabase (PostgreSQL) for the shared code pastebin feature via `@supabase/supabase-js`
 
 ---
 
@@ -333,30 +377,41 @@ The structure of the codebase is outlined below, highlighting key routing and UI
 ```
 src/
 ├── app/
-│   ├── layout.tsx            # Application-wide shell, custom font styling, and structure
+│   ├── layout.tsx            # Application-wide shell, ThemeProvider wrapper, and font setup
 │   ├── page.tsx              # Public-facing product landing page and marketing details
+│   ├── globals.css           # Design tokens, dark/light theme variables, and utility classes
 │   ├── api/
 │   │   ├── generate-snippet/ # Streaming endpoint for single-file peripheral files
 │   │   │   └── route.ts
 │   │   └── generate-rtos/    # Delimited streaming endpoint for multi-file RTOS workspaces
 │   │       └── route.ts
-│   ├── generate/             # Interactive generation workspace workspace
-│   │   ├── layout.tsx        # Route metadata and SEO layouts for generate
-│   │   └── page.tsx          # Workspace tabs orchestrator
+│   ├── generate/             # Interactive generation workspace
+│   │   └── page.tsx          # Workspace tabs orchestrator with Snippet and RTOS views
+│   ├── share/                # Public shared code viewer
+│   │   └── [id]/
+│   │       └── page.tsx      # Dynamic route rendering shared snippets with SEO metadata
 │   └── docs/                 # Documentation directory outlining MCU matrices
 │       └── page.tsx
 ├── components/
-│   ├── navbar.tsx            # Navigational banner featuring backdrop filters and active path tracking
-│   ├── footer.tsx            # Footer featuring detailed legal and technology stack markers
+│   ├── navbar.tsx            # Navigation bar with theme toggle, backdrop filters, active path tracking
+│   ├── footer.tsx            # Footer with team attribution and repository links
 │   ├── code-block.tsx        # Monospaced code renderer, clipboard handlers, and typing cursors
+│   ├── code-history.tsx      # Slide-out sidebar panel for browsing and restoring past generations
+│   ├── template-picker.tsx   # Searchable dropdown with 30+ firmware prompt templates
+│   ├── theme-provider.tsx    # React context managing dark/light theme state and persistence
+│   ├── theme-toggle.tsx      # Animated sun/moon toggle button for theme switching
 │   ├── mcu-badge.tsx         # Graphic microcontroller pinout rendering
-│   ├── snippet-generator.tsx # Parameters panels, validation states, and single-stream rendering
-│   ├── rtos-architect.tsx    # Multi-file code generation layouts, regex parser, and active statuses
+│   ├── snippet-generator.tsx # Parameters panels, template picker, history, share, and streaming
+│   ├── rtos-architect.tsx    # Multi-file generation with templates, history, share, and parsing
 │   └── ui/                   # Modular base UI components configured for Shadcn elements
 ├── lib/
 │   ├── constants.ts          # Static constants, support lists, and boilerplate setups
 │   ├── types.ts              # Global TypeScript configurations and type guards
 │   ├── peripheral-params.ts  # Validation parameters and schemas mapped per hardware interface
+│   ├── prompt-templates.ts   # 30+ curated firmware templates for snippet and RTOS generation
+│   ├── use-code-history.ts   # Custom React hook for localStorage-based code history CRUD
+│   ├── supabase.ts           # Supabase client initialization and share link API functions
+│   ├── rate-limit.ts         # In-memory IP-based rate limiter for API endpoints
 │   └── utils.ts              # Formatting utilities, including class list consolidation
 ```
 
@@ -401,9 +456,15 @@ FirmForge uses a custom design system designed to replicate high-precision instr
    ```bash
    cp .env.example .env.local
    ```
-   Open `.env.local` and configure your Google Gemini API Key:
+   Open `.env.local` and configure your API keys:
    ```env
+   # Required: Google Gemini API Key for code generation
    GEMINI_API_KEY=your_gemini_api_key_here
+
+   # Optional: Supabase configuration for the Share feature
+   # If not provided, the share button will be hidden and all other features work normally.
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
 
 4. **Launch Local Development Server**:
