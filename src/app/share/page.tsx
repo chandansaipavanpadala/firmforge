@@ -1,48 +1,75 @@
-import { getSharedSnippet } from "@/lib/supabase";
+"use client";
+
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { getSharedSnippet, type SharedSnippet } from "@/lib/supabase";
 import { CodeBlock } from "@/components/code-block";
 import Link from "next/link";
 
-// =============================================================================
-// /share/[id] — Public shared code viewer
-// =============================================================================
+function SharePageContent() {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id");
 
-interface SharePageProps {
-  params: Promise<{ id: string }>;
-}
+  const [snippet, setSnippet] = useState<SharedSnippet | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export async function generateMetadata({ params }: SharePageProps) {
-  const { id } = await params;
-  const snippet = await getSharedSnippet(id);
-  if (!snippet) {
-    return { title: "Snippet Not Found | FirmForge" };
-  }
-  const meta = snippet.metadata;
-  return {
-    title: `${meta.label || "Shared Code"} | FirmForge`,
-    description: `${meta.type === "rtos" ? "RTOS firmware" : "Peripheral snippet"} for ${meta.mcu || "embedded MCU"} — shared via FirmForge.`,
-  };
-}
+  useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
 
-export default async function SharePage({ params }: SharePageProps) {
-  const { id } = await params;
-  const snippet = await getSharedSnippet(id);
+    async function loadSnippet(targetId: string) {
+      try {
+        const data = await getSharedSnippet(targetId);
+        if (data) {
+          setSnippet(data);
+          if (data.metadata?.label) {
+            document.title = `${data.metadata.label} | FirmForge`;
+          }
+        } else {
+          setError("Snippet not found");
+        }
+      } catch (err) {
+        setError("Failed to load snippet");
+      } finally {
+        setLoading(false);
+      }
+    }
 
-  if (!snippet) {
+    loadSnippet(id);
+  }, [id]);
+
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="min-h-screen flex items-center justify-center bg-grid-pattern-subtle">
         <div className="text-center space-y-4">
-          <div className="text-6xl mb-4 opacity-30">404</div>
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#00D4FF] mx-auto"></div>
+          <p className="text-sm text-[#6B6B8A] font-medium" style={{ fontFamily: "var(--font-dm-sans)" }}>
+            Loading shared snippet...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !snippet) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 bg-grid-pattern-subtle">
+        <div className="text-center space-y-4">
+          <div className="text-6xl mb-4 opacity-30 text-red-500">404</div>
           <h1
             className="text-2xl font-bold text-[#E8E8F0]"
             style={{ fontFamily: "var(--font-syne)" }}
           >
-            Snippet Not Found
+            {error || "Snippet Not Found"}
           </h1>
           <p
             className="text-sm text-[#6B6B8A] max-w-md"
             style={{ fontFamily: "var(--font-dm-sans)" }}
           >
-            This shared code snippet does not exist or may have been removed.
+            This shared code snippet does not exist, may have been removed, or the link is invalid.
           </p>
           <Link
             href="/generate"
@@ -179,5 +206,22 @@ export default async function SharePage({ params }: SharePageProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SharePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-grid-pattern-subtle">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#00D4FF] mx-auto"></div>
+          <p className="text-sm text-[#6B6B8A] font-medium" style={{ fontFamily: "var(--font-dm-sans)" }}>
+            Loading...
+          </p>
+        </div>
+      </div>
+    }>
+      <SharePageContent />
+    </Suspense>
   );
 }

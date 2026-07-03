@@ -321,7 +321,7 @@ export function RTOSArchitect({ initialPrompt }: RTOSArchitectProps) {
         label: `${mcu} — ${rtos} Firmware`,
       });
       if (shortId) {
-        const url = `${window.location.origin}/share/${shortId}`;
+        const url = `${window.location.origin}/share?id=${shortId}`;
         setShareUrl(url);
         await navigator.clipboard.writeText(url);
       }

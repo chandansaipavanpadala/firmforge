@@ -203,7 +203,7 @@ export function SnippetGenerator() {
         label: `${mcu} — ${selectedPeripheralLabel}`,
       });
       if (shortId) {
-        const url = `${window.location.origin}/share/${shortId}`;
+        const url = `${window.location.origin}/share?id=${shortId}`;
         setShareUrl(url);
         await navigator.clipboard.writeText(url);
       }
